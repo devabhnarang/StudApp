@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>StudApp - Smart Student Assistant</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css"/>
+  <style>
+    :root {
+      --bg: linear-gradient(to right, #eef2f3, #ffffff);
+      --text: #333;
+      --nav-bg: #ffffff;
+      --nav-text: #333;
+      --nav-hover: #4e73df;
+      --hero-bg: linear-gradient(to right, #4e73df, #667eea);
+      --hero-text: #fff;
+      --btn-bg: #fff;
+      --btn-text: #4e73df;
+      --btn-hover-bg: #f8f9fc;
+      --btn-hover-text: #2e59d9;
+      --card-bg: #ffffff;
+      --card-text: #333;
+      --footer-bg: linear-gradient(to right, #2c3e50, #34495e);
+      --footer-text: #ccc;
+      --footer-heading: #fff;
+      --login-border: #4e73df;
+      --signup-bg: #4e73df;
+      --signup-hover: #2e59d9;
+    }
+
+    [data-theme="dark"] {
+      --bg: #1e1e1e;
+      --text: #eaeaea;
+      --nav-bg: #121212;
+      --nav-text: #eaeaea;
+      --nav-hover: #8ab4f8;
+      --hero-bg: linear-gradient(to right, #2a2a72, #009ffd);
+      --hero-text: #ffffff;
+      --btn-bg: #333;
+      --btn-text: #ffffff;
+      --btn-hover-bg: #444;
+      --btn-hover-text: #9ecbff;
+      --card-bg: #2a2a2a;
+      --card-text: #eaeaea;
+      --footer-bg: linear-gradient(to right, #000000, #1c1c1c);
+      --footer-text: #aaa;
+      --footer-heading: #ffffff;
+      --login-border: #9ecbff;
+      --signup-bg: #009ffd;
+      --signup-hover: #0066cc;
+    }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      overflow-x: hidden;
+      transition: all 0.3s ease;
+    }
+
+    .navbar {
+      background-color: var(--nav-bg);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+    }
+
+    .navbar-brand {
+      font-weight: bold;
+      font-size: 1.5rem;
+      color: var(--nav-hover);
+    }
+
+    .navbar-nav .nav-link {
+      font-weight: 500;
+      color: var(--nav-text);
+    }
+
+    .navbar-nav .nav-link:hover {
+      color: var(--nav-hover);
+    }
+
+    .hero {
+      background: var(--hero-bg);
+      color: var(--hero-text);
+      padding: 100px 20px 80px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero h1 {
+      font-size: 3.5rem;
+      font-weight: bold;
+    }
+
+    .hero p {
+      font-size: 1.2rem;
+      margin-top: 15px;
+      max-width: 700px;
+      margin-inline: auto;
+    }
+
+    .btn-get-started {
+      margin-top: 30px;
+      padding: 14px 40px;
+      font-size: 1.1rem;
+      border-radius: 30px;
+      font-weight: 600;
+      background-color: var(--btn-bg);
+      color: var(--btn-text);
+      transition: all 0.3s ease;
+    }
+
+    .btn-get-started:hover {
+      background-color: var(--btn-hover-bg);
+      color: var(--btn-hover-text);
+    }
+
+    .logo-img {
+      height: 200px;
+    }
+
+    .features {
+      padding: 80px 20px;
+      background-color: var(--bg);
+    }
+
+    .features .card {
+      background-color: var(--card-bg);
+      color: var(--card-text);
+      border: none;
+      border-radius: 20px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.05);
+      transition: 0.3s ease;
+    }
+
+    .features .card:hover {
+      transform: translateY(-8px);
+    }
+
+    .footer {
+      background: var(--footer-bg);
+      color: var(--footer-text);
+      padding-top: 30px;
+      padding-bottom: 20px;
+      font-size: 0.95rem;
+      box-shadow: inset 0 4px 8px rgba(0, 0, 0, 0.3);
+    }
+
+    .footer h5 {
+      color: var(--footer-heading);
+    }
+
+    .footer p {
+      margin-bottom: 0;
+      font-size: 0.9rem;
+    }
+
+    .nav-btn {
+      margin-left: 10px;
+      border-radius: 20px;
+      padding: 8px 20px;
+      font-size: 0.95rem;
+      font-weight: 500;
+      transition: all 0.3s ease;
+    }
+
+    .nav-btn.login {
+      background-color: transparent;
+      color: var(--nav-hover);
+      border: 2px solid var(--login-border);
+    }
+
+    .nav-btn.signup {
+      background-color: var(--signup-bg);
+      color: #fff;
+      border: none;
+    }
+
+    .nav-btn.signup:hover {
+      background-color: var(--signup-hover);
+    }
+
+    .form-switch {
+      margin-left: 15px;
+    }
+
+    .form-check-label {
+      font-size: 1.2rem;
+      cursor: pointer;
+      user-select: none;
+      color: var(--text);
+    }
+  </style>
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg sticky-top">
+  <div class="container">
+    <a class="navbar-brand" href="#">StudApp</a>
+    <div class="ms-auto d-flex align-items-center gap-2">
+      <div class="form-check form-switch mb-0">
+        <input class="form-check-input" type="checkbox" id="themeSwitch">
+        <label class="form-check-label" for="themeSwitch">🌙</label>
+      </div>
+      <a href="/index.html" class="btn nav-btn login">Login</a>
+      <a href="/index.html?form=signup" class="btn nav-btn signup">Sign Up</a>
+    </div>
+  </div>
+</nav>
+
+<div class="hero">
+  <img src="/static/logo.png" class="logo-img mb-4" alt="StudApp Logo" data-aos="zoom-in">
+  <h1 data-aos="fade-up">Welcome to StudApp</h1>
+  <p data-aos="fade-up" data-aos-delay="150">Your smart assistant for student success — manage reminders, summarize notes, and chat with AI.</p>
+  <a href="/index.html"><button class="btn btn-get-started" data-aos="fade-up" data-aos-delay="300">🚀 Get Started</button></a>
+</div>
+
+<div class="container features">
+  <div class="row g-4">
+    <div class="col-md-4" data-aos="fade-up">
+      <div class="card p-4 text-center">
+        <img src="https://cdn-icons-png.flaticon.com/512/3062/3062634.png" width="80" class="mb-3" alt="Reminders">
+        <h5>📅 Task Reminders</h5>
+        <p>Set and track your academic tasks, deadlines, and exams easily with our intuitive dashboard.</p>
+      </div>
+    </div>
+    <div class="col-md-4" data-aos="fade-up" data-aos-delay="200">
+      <div class="card p-4 text-center">
+        <img src="https://cdn-icons-png.flaticon.com/512/3534/3534001.png" width="80" class="mb-3" alt="AI Chatbot">
+        <h5>🤖 StudBot Chat</h5>
+        <p>Chat with our AI-powered StudBot to get help with studies, productivity tips, and more.</p>
+      </div>
+    </div>
+    <div class="col-md-4" data-aos="fade-up" data-aos-delay="400">
+      <div class="card p-4 text-center">
+        <img src="https://cdn-icons-png.flaticon.com/512/3884/3884852.png" width="80" class="mb-3" alt="Summarizer">
+        <h5>📝 Notes Summarizer</h5>
+        <p>Upload your PDF or Word class notes and get instant smart summaries for quick revision.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer class="footer mt-5">
+  <div class="container py-4">
+    <div class="row align-items-center">
+      <div class="col-md-6 text-center text-md-start mb-3 mb-md-0">
+        <h5 class="fw-bold">StudApp</h5>
+        <p class="mb-0">Empowering students with smart reminders, summaries, and AI assistance.</p>
+      </div>
+      <div class="col-md-6 text-center text-md-end">
+        <p class="mb-0">&copy; 2025 StudApp. All rights reserved.</p>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
+<script>
+  AOS.init({ duration: 1000 });
+
+  // Handle theme switcher
+  const themeSwitch = document.getElementById('themeSwitch');
+  const currentTheme = localStorage.getItem('theme') || 'light';
+  document.documentElement.setAttribute('data-theme', currentTheme);
+  if (currentTheme === 'dark') themeSwitch.checked = true;
+
+  themeSwitch.addEventListener('change', () => {
+    const theme = themeSwitch.checked ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('theme', theme);
+  });
+</script>
+</body>
+</html>
