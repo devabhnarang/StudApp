@@ -1,7 +1,8 @@
 Flask
 Flask-Cors
+python-dotenv
 PyPDF2
 python-docx
 openai
 psycopg2-binary
-python-dotenv
+requests
