@@ -16,17 +16,18 @@ load_dotenv()
 app = Flask(__name__)
 CORS(app)
 
-# PostgreSQL connection helper
+# ---------- PostgreSQL Connection Helper ----------
 def get_db_connection():
     conn = psycopg2.connect(
-        host=os.getenv('DB_HOST', 'localhost'),
-        database=os.getenv('DB_NAME', 'studapp'),
-        user=os.getenv('DB_USER', 'postgres'),
-        password=os.getenv('DB_PASS', '')
+        host=os.getenv('DB_HOST'),
+        database=os.getenv('DB_NAME'),
+        user=os.getenv('DB_USER'),
+        password=os.getenv('DB_PASS'),
+        cursor_factory=RealDictCursor  # returns rows as dictionaries
     )
     return conn
 
-# Groq API config
+# ---------- Groq API config ----------
 openai.api_key = os.getenv("GROQ_API_KEY")
 openai.base_url = 'https://api.groq.com/openai/v1/'
 GROQ_MODEL = 'llama-3.3-70b-versatile'
@@ -37,11 +38,9 @@ GROQ_MODEL = 'llama-3.3-70b-versatile'
 def home_page():
     return render_template('home.html')
 
-
 @app.route('/index.html')
 def index():
     return render_template('index.html')
-
 
 @app.route('/signup', methods=['POST'])
 def signup():
@@ -50,14 +49,17 @@ def signup():
     password = request.form['password']
     role = 'student'
     hashed_password = generate_password_hash(password)
+
     conn = get_db_connection()
     cur = conn.cursor()
     try:
         cur.execute("SELECT id FROM users WHERE email = %s", (email,))
         if cur.fetchone():
             return 'Email already exists'
-        cur.execute("INSERT INTO users (name, email, password, role) VALUES (%s, %s, %s, %s)",
-                    (name, email, hashed_password, role))
+        cur.execute(
+            "INSERT INTO users (name, email, password, role) VALUES (%s, %s, %s, %s)",
+            (name, email, hashed_password, role)
+        )
         conn.commit()
         return 'Signup successful'
     except Exception as e:
@@ -67,18 +69,18 @@ def signup():
         cur.close()
         conn.close()
 
-
 @app.route('/login', methods=['POST'])
 def login():
     email = request.form['email']
     password = request.form['password']
+
     conn = get_db_connection()
     cur = conn.cursor()
     try:
         cur.execute("SELECT id, name, role, password FROM users WHERE email = %s", (email,))
         user = cur.fetchone()
-        if user and check_password_hash(user[3], password):
-            return f"{user[2]}|{user[0]}|{user[1]}"
+        if user and check_password_hash(user['password'], password):
+            return f"{user['role']}|{user['id']}|{user['name']}"
         return 'Invalid credentials'
     except Exception as e:
         print("❌ Login Error:", e)
@@ -86,7 +88,6 @@ def login():
     finally:
         cur.close()
         conn.close()
-
 
 @app.route('/dashboard/<int:user_id>')
 def dashboard_redirect(user_id):
@@ -97,7 +98,7 @@ def dashboard_redirect(user_id):
         result = cur.fetchone()
         if not result:
             return "User not found", 404
-        role = result[0]
+        role = result['role']
         return redirect(f'/{role}_dashboard/{user_id}')
     except Exception as e:
         print("❌ Dashboard Redirect Error:", e)
@@ -105,7 +106,6 @@ def dashboard_redirect(user_id):
     finally:
         cur.close()
         conn.close()
-
 
 @app.route('/student_dashboard/<int:user_id>')
 def student_dashboard(user_id):
@@ -125,7 +125,6 @@ def student_dashboard(user_id):
         cur.close()
         conn.close()
 
-
 @app.route('/admin_dashboard/<int:user_id>')
 def admin_dashboard(user_id):
     conn = get_db_connection()
@@ -135,7 +134,7 @@ def admin_dashboard(user_id):
         users = cur.fetchall()
 
         cur.execute("SELECT COUNT(*) FROM reminders")
-        reminder_count = cur.fetchone()[0]
+        reminder_count = cur.fetchone()['count']
 
         cur.execute("""
             SELECT r.id, r.title, r.description, r.date, r.time, u.name
@@ -160,7 +159,6 @@ def admin_dashboard(user_id):
         cur.close()
         conn.close()
 
-
 @app.route('/add_reminder', methods=['POST'])
 def add_reminder():
     try:
@@ -169,6 +167,7 @@ def add_reminder():
         description = request.form.get('description')
         date = request.form.get('date')
         time = request.form.get('time')
+
         conn = get_db_connection()
         cur = conn.cursor()
         cur.execute(
@@ -183,7 +182,6 @@ def add_reminder():
     finally:
         cur.close()
         conn.close()
-
 
 @app.route('/delete_reminder/<int:reminder_id>', methods=['POST'])
 def delete_reminder(reminder_id):
@@ -200,7 +198,6 @@ def delete_reminder(reminder_id):
         cur.close()
         conn.close()
 
-
 @app.route('/profile/<int:user_id>')
 def profile(user_id):
     conn = get_db_connection()
@@ -211,10 +208,10 @@ def profile(user_id):
         if not row:
             return "User not found", 404
         user = {
-            "id": row[0],
-            "name": row[1],
-            "email": row[2],
-            "date_joined": row[3].strftime('%d %B %Y') if row[3] else ""
+            "id": row['id'],
+            "name": row['name'],
+            "email": row['email'],
+            "date_joined": row['date_joined'].strftime('%d %B %Y') if row['date_joined'] else ""
         }
         return render_template("profile.html", user=user)
     except Exception as e:
@@ -223,7 +220,6 @@ def profile(user_id):
     finally:
         cur.close()
         conn.close()
-
 
 @app.route('/chatbot', methods=['POST'])
 def chatbot():
@@ -242,22 +238,18 @@ def chatbot():
         print("❌ Groq API error:", e)
         return {'response': '❌ Failed to contact StudBot'}, 500
 
-
 @app.route('/notes_summarizer/<int:user_id>')
 def notes_summarizer(user_id):
     return render_template("notes_summarizer.html", user_id=user_id)
-
 
 def extract_text_by_page_pdf(pdf_file):
     reader = PdfReader(pdf_file)
     return [(i + 1, page.extract_text().strip()) for i, page in enumerate(reader.pages) if page.extract_text()]
 
-
 def extract_text_from_docx(docx_file):
     document = Document(docx_file)
     paragraphs = [p.text.strip() for p in document.paragraphs if p.text.strip()]
     return [(i + 1, para) for i, para in enumerate(paragraphs)]
-
 
 def summarize_with_groq(text):
     try:
@@ -271,7 +263,6 @@ def summarize_with_groq(text):
         return response.choices[0].message.content.strip()
     except Exception as e:
         return f"❌ Summary error: {str(e)}"
-
 
 @app.route('/summarize_notes_all_pages', methods=['POST'])
 def summarize_notes_all_pages():
@@ -295,7 +286,6 @@ def summarize_notes_all_pages():
     finally:
         if 'temp' in locals() and os.path.exists(temp.name):
             os.remove(temp.name)
-
 
 @app.route('/edit_profile/<int:user_id>', methods=['GET', 'POST'])
 def edit_profile(user_id):
@@ -326,7 +316,7 @@ def edit_profile(user_id):
         row = cur.fetchone()
         if not row:
             return "User not found", 404
-        user = {"id": row[0], "name": row[1], "email": row[2]}
+        user = {"id": row['id'], "name": row['name'], "email": row['email']}
         return render_template('edit_profile.html', user=user)
 
     except Exception as e:
