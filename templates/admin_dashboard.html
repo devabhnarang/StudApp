@@ -164,13 +164,13 @@
           </tr>
         </thead>
         <tbody>
-          {% for u in users %}
+          {% for user in users %}
           <tr>
-            <td>{{ u[1] }}</td>
-            <td>{{ u[2] }}</td>
-            <td><span class="badge bg-primary">{{ u[3]|capitalize }}</span></td>
+            <td>{{ user.name }}</td>
+            <td>{{ user.email }}</td>
+            <td><span class="badge bg-primary">{{ user.role|capitalize }}</span></td>
             <td>
-              {% if u[4] == 'active' %}
+              {% if user.status == 'active' %}
                 <span class="status-badge status-active">Active</span>
               {% else %}
                 <span class="status-badge status-inactive">Revoked</span>
@@ -178,15 +178,15 @@
             </td>
             <td>
               <div class="action-buttons">
-                <button class="btn btn-sm btn-outline-primary action-btn" data-bs-toggle="modal" data-bs-target="#userDetailsModal" data-userid="{{ u[0] }}">
+                <button class="btn btn-sm btn-outline-primary action-btn" data-bs-toggle="modal" data-bs-target="#userDetailsModal" data-userid="{{ user.id }}">
                   <i class="fas fa-eye"></i>
                 </button>
-                {% if u[4] == 'active' %}
-                  <button class="btn btn-sm btn-danger action-btn revoke-access" data-userid="{{ u[0] }}">
+                {% if user.status == 'active' %}
+                  <button class="btn btn-sm btn-danger action-btn revoke-access" data-userid="{{ user.id }}">
                     <i class="fas fa-user-slash"></i>
                   </button>
                 {% else %}
-                  <button class="btn btn-sm btn-success action-btn restore-access" data-userid="{{ u[0] }}">
+                  <button class="btn btn-sm btn-success action-btn restore-access" data-userid="{{ user.id }}">
                     <i class="fas fa-user-check"></i>
                   </button>
                 {% endif %}
@@ -202,11 +202,11 @@
   <!-- Recent Reminders -->
   <div class="card">
     <h5 class="mb-3">⏰ Recent Reminders</h5>
-    {% for r in reminders %}
+    {% for reminder in reminders %}
     <div class="border-bottom pb-2 mb-2">
-      <h6 class="mb-0">{{ r[1] }} <small class="text-muted">by {{ r[5] }}</small></h6>
-      <p class="text-muted mb-1">{{ r[2] }}</p>
-      <small class="text-primary">📅 {{ r[3] }} ⏰ {{ r[4] }}</small>
+      <h6 class="mb-0">{{ reminder.title }} <small class="text-muted">by {{ reminder.user_name }}</small></h6>
+      <p class="text-muted mb-1">{{ reminder.description }}</p>
+      <small class="text-primary">📅 {{ reminder.date }} ⏰ {{ reminder.time }}</small>
     </div>
     {% else %}
       <p class="text-muted">No reminders found.</p>
@@ -272,14 +272,14 @@
 
   // ---------- STORE USERS FOR MODAL ----------
   const users = {};
-  {% for u in users %}
-    users['{{ u[0] }}'] = {
-      id: '{{ u[0] }}',
-      name: '{{ u[1] }}',
-      email: '{{ u[2] }}',
-      role: '{{ u[3] }}',
-      status: '{{ u[4] }}',
-      date_joined: '{{ u[6] }}'
+  {% for user in users %}
+    users['{{ user.id }}'] = {
+      id: '{{ user.id }}',
+      name: '{{ user.name }}',
+      email: '{{ user.email }}',
+      role: '{{ user.role }}',
+      status: '{{ user.status }}',
+      date_joined: '{{ user.date_joined }}'
     };
   {% endfor %}
 
