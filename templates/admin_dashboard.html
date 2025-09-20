@@ -153,7 +153,7 @@
       </div>
     </div>
     <div class="table-responsive">
-      <table class="user-table">
+      <table class="user-table table table-hover">
         <thead>
           <tr>
             <th>Name</th>
@@ -178,15 +178,15 @@
             </td>
             <td>
               <div class="action-buttons">
-                <button class="btn btn-sm btn-outline-primary action-btn" data-bs-toggle="modal" data-bs-target="#userDetailsModal">
+                <button class="btn btn-sm btn-outline-primary action-btn" data-bs-toggle="modal" data-bs-target="#userDetailsModal" data-userid="{{ u[0] }}">
                   <i class="fas fa-eye"></i>
                 </button>
                 {% if u[4] == 'active' %}
-                  <button class="btn btn-sm btn-danger action-btn revoke-access" data-userid="{{ u[0] }}" data-username="{{ u[1] }}">
+                  <button class="btn btn-sm btn-danger action-btn revoke-access" data-userid="{{ u[0] }}">
                     <i class="fas fa-user-slash"></i>
                   </button>
                 {% else %}
-                  <button class="btn btn-sm btn-success action-btn restore-access" data-userid="{{ u[0] }}" data-username="{{ u[1] }}">
+                  <button class="btn btn-sm btn-success action-btn restore-access" data-userid="{{ u[0] }}">
                     <i class="fas fa-user-check"></i>
                   </button>
                 {% endif %}
@@ -212,10 +212,8 @@
       <p class="text-muted">No reminders found.</p>
     {% endfor %}
   </div>
-
 </div>
 
-<!-- Footer -->
 <footer>© 2025 StudApp Admin. All rights reserved.
   <img src="/static/dnlogo.png" style="height:30px" alt="StudApp Logo">
 </footer>
@@ -243,33 +241,14 @@
   </div>
 </div>
 
-<div class="modal fade" id="confirmationModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="confirmationModalTitle">Confirm Action</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body">
-        <p id="confirmationModalText"></p>
-        <p class="text-danger" id="confirmationWarning"></p>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-        <button type="button" class="btn" id="confirmActionBtn"></button>
-      </div>
-    </div>
-  </div>
-</div>
-
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-
 <script>
   // ---------- THEME SWITCH ----------
   const themeSwitch = document.getElementById('themeSwitch');
   const currentTheme = localStorage.getItem('theme') || 'light';
   document.documentElement.setAttribute('data-theme', currentTheme);
-  if(currentTheme === 'dark') themeSwitch.checked = true;
+  if(currentTheme==='dark') themeSwitch.checked = true;
+
   themeSwitch.addEventListener('change', () => {
     const theme = themeSwitch.checked ? 'dark' : 'light';
     document.documentElement.setAttribute('data-theme', theme);
@@ -277,13 +256,18 @@
   });
 
   // ---------- USER SEARCH ----------
-  document.getElementById('userSearch').addEventListener('input', function(e) {
-    const searchTerm = e.target.value.toLowerCase();
-    document.querySelectorAll('.user-table tbody tr').forEach(row => {
-      const name = row.cells[0].textContent.toLowerCase();
-      const email = row.cells[1].textContent.toLowerCase();
-      row.style.display = (name.includes(searchTerm) || email.includes(searchTerm)) ? '' : 'none';
-    });
+  const userSearchInput = document.getElementById('userSearch');
+  let searchTimeout;
+  userSearchInput.addEventListener('input', e => {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => {
+      const term = e.target.value.toLowerCase();
+      document.querySelectorAll('.user-table tbody tr').forEach(row => {
+        const name = row.cells[0].textContent.toLowerCase();
+        const email = row.cells[1].textContent.toLowerCase();
+        row.style.display = (name.includes(term) || email.includes(term)) ? '' : 'none';
+      });
+    }, 150);
   });
 
   // ---------- STORE USERS FOR MODAL ----------
@@ -308,31 +292,32 @@
     if(user){
       document.getElementById('modalUserName').textContent = user.name;
       document.getElementById('modalUserEmail').textContent = user.email;
-      document.getElementById('modalUserRole').textContent = user.role.charAt(0).toUpperCase() + user.role.slice(1);
-      document.getElementById('modalUserRole').className = 'badge bg-' + (user.role==='admin'?'success':'primary');
-      document.getElementById('modalUserStatus').textContent = user.status==='active'?'Active':'Revoked';
-      document.getElementById('modalUserStatus').className = 'status-badge ' + (user.status==='active'?'status-active':'status-inactive');
+      const roleEl = document.getElementById('modalUserRole');
+      roleEl.textContent = user.role.charAt(0).toUpperCase() + user.role.slice(1);
+      roleEl.className = 'badge bg-' + (user.role==='admin'?'success':'primary');
+      const statusEl = document.getElementById('modalUserStatus');
+      statusEl.textContent = user.status==='active'?'Active':'Revoked';
+      statusEl.className = 'status-badge ' + (user.status==='active'?'status-active':'status-inactive');
       document.getElementById('modalUserRegDate').textContent = user.date_joined;
 
       const actionBtn = document.getElementById('modalRevokeBtn');
       if(user.status==='active'){
         actionBtn.textContent='Revoke Access';
         actionBtn.className='btn btn-danger';
+        actionBtn.onclick = () => handleActionById(user.id, 'revoke');
       } else{
         actionBtn.textContent='Restore Access';
         actionBtn.className='btn btn-success';
+        actionBtn.onclick = () => handleActionById(user.id, 'restore');
       }
-      actionBtn.dataset.userid = userId;
     }
   });
 
-  // ---------- REVOKE / RESTORE ACTION ----------
-  function handleAction(button, actionType){
-    const userId = button.dataset.userid;
+  // ---------- HANDLE ACTIONS ----------
+  function handleActionById(userId, actionType){
     const user = users[userId];
     if(!user) return;
 
-    // Update frontend first
     const row = document.querySelector(`button[data-userid="${userId}"]`).closest('tr');
     const statusBadge = row.querySelector('.status-badge');
     const actionButtons = row.querySelector('.action-buttons');
@@ -345,7 +330,7 @@
         <button class="btn btn-sm btn-outline-primary action-btn" data-bs-toggle="modal" data-bs-target="#userDetailsModal" data-userid="${userId}">
           <i class="fas fa-eye"></i>
         </button>
-        <button class="btn btn-sm btn-success action-btn" onclick="handleAction(this, 'restore')" data-userid="${userId}">
+        <button class="btn btn-sm btn-success action-btn restore-access" data-userid="${userId}">
           <i class="fas fa-user-check"></i>
         </button>
       `;
@@ -357,22 +342,25 @@
         <button class="btn btn-sm btn-outline-primary action-btn" data-bs-toggle="modal" data-bs-target="#userDetailsModal" data-userid="${userId}">
           <i class="fas fa-eye"></i>
         </button>
-        <button class="btn btn-sm btn-danger action-btn" onclick="handleAction(this, 'revoke')" data-userid="${userId}">
+        <button class="btn btn-sm btn-danger action-btn revoke-access" data-userid="${userId}">
           <i class="fas fa-user-slash"></i>
         </button>
       `;
     }
-
+    // Reattach event listeners to newly created buttons
+    attachActionListeners();
   }
 
-  // ---------- INITIAL ACTION BUTTON SETUP ----------
-  document.querySelectorAll('.revoke-access').forEach(btn => {
-    btn.addEventListener('click', () => handleAction(btn, 'revoke'));
-  });
-  document.querySelectorAll('.restore-access').forEach(btn => {
-    btn.addEventListener('click', () => handleAction(btn, 'restore'));
-  });
-</script>
+  function attachActionListeners(){
+    document.querySelectorAll('.revoke-access').forEach(btn => {
+      btn.onclick = () => handleActionById(btn.dataset.userid, 'revoke');
+    });
+    document.querySelectorAll('.restore-access').forEach(btn => {
+      btn.onclick = () => handleActionById(btn.dataset.userid, 'restore');
+    });
+  }
+  attachActionListeners();
 
+</script>
 </body>
 </html>
