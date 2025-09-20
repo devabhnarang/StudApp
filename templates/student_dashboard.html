@@ -76,15 +76,20 @@
       border-bottom: 1px solid var(--border);
     }
     
-    footer { 
-      bottom: 0; 
-      text-align: center; 
-      font-size: 0.9rem; 
+    footer {
+      position: fixed;
+      bottom: 0;
+      left: 0;      /* add this */
+      width: 100%;  /* add this */
+      text-align: center;
+      font-size: 0.9rem;
       color: var(--footer-text);
       padding: 0.75rem 2rem;
       background: var(--footer-bg);
       border-top: 1px solid var(--border);
+      box-shadow: 0 -4px 10px rgba(0,0,0,0.1);
     }
+
 
     .header-content {
       display: flex;
@@ -104,8 +109,10 @@
     .container {
       max-width: 1200px;
       margin: auto;
-      padding: 2rem 1.5rem 6rem;
+      padding: 2rem 1.5rem 6rem; /* note the bottom padding of 6rem */
     }
+
+
 
     .card {
       background-color: var(--card-bg);
@@ -116,7 +123,7 @@
       transition: all 0.3s ease;
       border: 1px solid var(--border);
       animation: fadeIn 0.6s ease;
-      height: 100%;
+      height: auto;
     }
     
     .card:nth-child(1) { animation-delay: 0.1s; }
@@ -670,6 +677,7 @@
         font-size: 1.1rem;
       }
     }
+    
   </style>
 </head>
 
