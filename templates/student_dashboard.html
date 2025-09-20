@@ -12,57 +12,43 @@
 
   <style>
     :root {
-      --bg: linear-gradient(to right, #eef2f3, #ffffff);
+      --primary: #4e73df;
+      --primary-dark: #2e59d9;
+      --secondary: #667eea;
+      --success: #10b981;
+      --danger: #e74a3b;
+      --warning: #f6c23e;
+      --info: #36b9cc;
+      --light: #f8f9fc;
+      --dark: #2a2a2a;
       --text: #333;
-      --nav-bg: #ffffff;
-      --nav-text: #333;
-      --nav-hover: #4e73df;
-      --hero-bg: linear-gradient(to right, #4e73df, #667eea);
-      --hero-text: #fff;
-      --btn-bg: #fff;
-      --btn-text: #4e73df;
-      --btn-hover-bg: #f8f9fc;
-      --btn-hover-text: #2e59d9;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
       --card-bg: #ffffff;
-      --card-text: #333;
+      --bg: linear-gradient(to right, #eef2f3, #ffffff);
+      --header-bg: #ffffff;
       --footer-bg: linear-gradient(to right, #2c3e50, #34495e);
       --footer-text: #ccc;
-      --footer-heading: #fff;
-      --login-border: #4e73df;
-      --signup-bg: #4e73df;
-      --signup-hover: #2e59d9;
-      --feature-icon-bg: #e9ecef;
-      --feature-icon-color: #4e73df;
-      --border: #e2e8f0;
-      --muted: #64748b;
-      --success: #10b981;
     }
 
     [data-theme="dark"] {
-      --bg: #1e1e1e;
+      --primary: #8ab4f8;
+      --primary-dark: #6a96d8;
+      --secondary: #009ffd;
+      --success: #34d399;
+      --danger: #f87171;
+      --warning: #fcd34d;
+      --info: #60a5fa;
+      --light: #3a3a3a;
+      --dark: #eaeaea;
       --text: #eaeaea;
-      --nav-bg: #121212;
-      --nav-text: #eaeaea;
-      --nav-hover: #8ab4f8;
-      --hero-bg: linear-gradient(to right, #2a2a72, #009ffd);
-      --hero-text: #ffffff;
-      --btn-bg: #333;
-      --btn-text: #ffffff;
-      --btn-hover-bg: #444;
-      --btn-hover-text: #9ecbff;
+      --text-muted: #94a3b8;
+      --border: #334155;
       --card-bg: #2a2a2a;
-      --card-text: #eaeaea;
+      --bg: #1e1e1e;
+      --header-bg: #121212;
       --footer-bg: linear-gradient(to right, #000000, #1c1c1c);
       --footer-text: #aaa;
-      --footer-heading: #ffffff;
-      --login-border: #9ecbff;
-      --signup-bg: #009ffd;
-      --signup-hover: #0066cc;
-      --feature-icon-bg: #3a3a3a;
-      --feature-icon-color: #8ab4f8;
-      --border: #334155;
-      --muted: #94a3b8;
-      --success: #34d399;
     }
   
     body {
@@ -76,7 +62,7 @@
     }
 
     header, footer {
-      background: var(--nav-bg);
+      background: var(--header-bg);
       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
       padding: 1rem 2rem;
       position: fixed;
@@ -107,9 +93,12 @@
     }
     
     .header-content h4 {
-      color: var(--nav-hover);
+      color: var(--primary);
       margin: 0;
       font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 10px;
     }
 
     .container {
@@ -127,6 +116,7 @@
       transition: all 0.3s ease;
       border: 1px solid var(--border);
       animation: fadeIn 0.6s ease;
+      height: 100%;
     }
     
     .card:nth-child(1) { animation-delay: 0.1s; }
@@ -139,7 +129,7 @@
     }
 
     .btn-primary {
-      background: linear-gradient(135deg, var(--signup-bg), var(--nav-hover));
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
       border: none;
       color: white;
       border-radius: 10px;
@@ -190,19 +180,19 @@
       left: 0;
       width: 50px;
       height: 4px;
-      background: linear-gradient(135deg, var(--signup-bg), var(--nav-hover));
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
       border-radius: 4px;
     }
 
     .btn-primary:hover {
-      background: linear-gradient(135deg, var(--signup-hover), var(--btn-hover-text));
+      background: linear-gradient(135deg, var(--primary-dark), var(--primary));
       transform: translateY(-2px);
       box-shadow: 0 6px 12px rgba(79, 70, 229, 0.4);
     }
 
     .btn-outline-primary {
-      color: var(--nav-hover);
-      border-color: var(--nav-hover);
+      color: var(--primary);
+      border-color: var(--primary);
       border-radius: 10px;
       font-weight: 500;
       transition: all 0.3s ease;
@@ -210,7 +200,7 @@
     }
 
     .btn-outline-primary:hover {
-      background: linear-gradient(135deg, var(--signup-bg), var(--nav-hover));
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
       color: white;
       transform: translateY(-2px);
       box-shadow: 0 6px 12px rgba(79, 70, 229, 0.3);
@@ -228,13 +218,13 @@
     .form-control:focus,
     textarea:focus,
     .form-select:focus {
-      border-color: var(--nav-hover);
+      border-color: var(--primary);
       box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.15);
       outline: none;
     }
 
     .text-muted {
-      color: var(--muted) !important;
+      color: var(--text-muted) !important;
     }
 
     #chatToggleBtn {
@@ -242,7 +232,7 @@
       top: 100px;
       right: 30px;
       z-index: 1050;
-      background: linear-gradient(135deg, var(--signup-bg), var(--nav-hover));
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
       color: white;
       font-size: 1rem;
       font-weight: 600;
@@ -282,7 +272,7 @@
     }
 
     #chatHeader {
-      background: linear-gradient(135deg, var(--signup-bg), var(--nav-hover));
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
       color: white;
       padding: 1.2rem;
       cursor: move;
@@ -336,7 +326,7 @@
     }
     
     .user-message {
-      background: linear-gradient(135deg, var(--signup-bg), var(--nav-hover));
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
       color: white;
       align-self: flex-end;
       border-bottom-right-radius: 5px;
@@ -372,14 +362,14 @@
     }
     
     #chatInputGroup input:focus {
-      border-color: var(--nav-hover);
+      border-color: var(--primary);
       box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
     }
 
     #chatInputGroup button {
       border: none;
       padding: 0.85rem 1.5rem;
-      background: linear-gradient(135deg, var(--signup-bg), var(--nav-hover));
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
       color: white;
       border-radius: 12px;
       font-weight: 600;
@@ -389,27 +379,30 @@
     }
     
     #chatInputGroup button:hover {
-      background: linear-gradient(135deg, var(--signup-hover), var(--btn-hover-text));
+      background: linear-gradient(135deg, var(--primary-dark), var(--primary));
       transform: translateY(-2px);
       box-shadow: 0 6px 12px rgba(79, 70, 229, 0.4);
     }
 
     .btn-danger {
+      background: var(--danger);
       font-size: 0.85rem;
       padding: 0.5rem 1rem;
       border-radius: 8px;
       font-weight: 500;
       transition: all 0.3s ease;
+      border: none;
     }
     
     .btn-danger:hover {
+      background: #c53030;
       transform: translateY(-2px);
       box-shadow: 0 6px 12px rgba(220, 53, 69, 0.3);
     }
 
     .welcome-box {
-      background: var(--hero-bg);
-      color: var(--hero-text);
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: white;
       padding: 3rem 2.5rem;
       animation: slideFadeIn 0.8s ease;
       border-radius: 20px;
@@ -461,7 +454,7 @@
     }
     
     .reminder-item:hover {
-      background-color: var(--bg);
+      background-color: var(--light);
       padding: 1.2rem;
       border-radius: 12px;
       margin: 0 -1rem;
@@ -470,6 +463,55 @@
     
     .reminder-item:last-child {
       border-bottom: none;
+    }
+
+    .stats-card {
+      text-align: center;
+      padding: 1.5rem;
+    }
+    
+    .stats-icon {
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+      color: var(--primary);
+    }
+    
+    .stats-number {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 0.5rem;
+    }
+    
+    .stats-label {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .reminder-priority {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      margin-left: 0.5rem;
+    }
+    
+    .priority-high {
+      background-color: rgba(231, 74, 59, 0.2);
+      color: var(--danger);
+    }
+    
+    .priority-medium {
+      background-color: rgba(246, 194, 62, 0.2);
+      color: var(--warning);
+    }
+    
+    .priority-low {
+      background-color: rgba(16, 185, 129, 0.2);
+      color: var(--success);
     }
 
     /* Animations */
@@ -516,7 +558,7 @@
     }
     
     .fc .fc-button {
-      background: linear-gradient(135deg, var(--signup-bg), var(--nav-hover));
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
       border: none;
       border-radius: 8px;
       font-weight: 500;
@@ -524,7 +566,7 @@
     }
     
     .fc .fc-button:hover {
-      background: linear-gradient(135deg, var(--signup-hover), var(--btn-hover-text));
+      background: linear-gradient(135deg, var(--primary-dark), var(--primary));
       transform: translateY(-2px);
       box-shadow: 0 6px 12px rgba(79, 70, 229, 0.3);
     }
@@ -535,7 +577,7 @@
     }
     
     .fc .fc-daygrid-day-frame:hover {
-      background-color: var(--bg);
+      background-color: var(--light);
     }
     
     .fc-theme-standard td, 
@@ -549,7 +591,7 @@
     }
     
     .fc .fc-event {
-      background: linear-gradient(135deg, var(--signup-bg), var(--nav-hover));
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
       border: none;
       border-radius: 6px;
       padding: 3px 6px;
@@ -558,12 +600,12 @@
     }
     
     .form-check-input:checked {
-      background-color: var(--nav-hover);
-      border-color: var(--nav-hover);
+      background-color: var(--primary);
+      border-color: var(--primary);
     }
     
     .form-check-input:focus {
-      border-color: var(--nav-hover);
+      border-color: var(--primary);
       box-shadow: 0 0 0 0.25rem rgba(79, 70, 229, 0.25);
     }
     
@@ -579,7 +621,7 @@
     }
     
     footer div {
-      color: var(--footer-heading);
+      color: white;
       font-weight: 500;
     }
     
@@ -590,7 +632,7 @@
     }
     
     .form-check-label {
-      color: var(--nav-text);
+      color: var(--text);
       font-weight: 500;
     }
     
@@ -651,8 +693,39 @@
 <div class="container">
 
   <div class="welcome-box">
-    <h2 class="welcome-title">👋 Welcome to StudApp</h2>
+    <h2 class="welcome-title">👋 Welcome back, {{ username }}!</h2>
     <p class="welcome-desc">Plan your day, track your tasks, and talk to <strong>StudBot</strong> — your smart study assistant!</p>
+  </div>
+
+  <!-- Stats Overview -->
+  <div class="row mb-4">
+    <div class="col-md-4 mb-3">
+      <div class="card stats-card">
+        <div class="stats-icon">
+          <i class="fas fa-tasks"></i>
+        </div>
+        <div class="stats-number">{{ reminders|length }}</div>
+        <div class="stats-label">Active Reminders</div>
+      </div>
+    </div>
+    <div class="col-md-4 mb-3">
+      <div class="card stats-card">
+        <div class="stats-icon">
+          <i class="fas fa-calendar-check"></i>
+        </div>
+        <div class="stats-number">{{ today_reminders }}</div>
+        <div class="stats-label">Due Today</div>
+      </div>
+    </div>
+    <div class="col-md-4 mb-3">
+      <div class="card stats-card">
+        <div class="stats-icon">
+          <i class="fas fa-robot"></i>
+        </div>
+        <div class="stats-number">24/7</div>
+        <div class="stats-label">StudBot Support</div>
+      </div>
+    </div>
   </div>
 
   <div class="row">
@@ -682,6 +755,13 @@
           <div class="mb-3">
             <textarea id="description" class="form-control" placeholder="Short Description..." rows="2" required></textarea>
           </div>
+          <div class="mb-3">
+            <select class="form-select" id="priority">
+              <option value="low">Low Priority</option>
+              <option value="medium" selected>Medium Priority</option>
+              <option value="high">High Priority</option>
+            </select>
+          </div>
           <div class="text-end">
             <button type="submit" class="btn btn-primary">Add Reminder</button>
           </div>
@@ -696,7 +776,7 @@
       {% for r in reminders %}
       <div class="reminder-item">
         <div class="flex-grow-1">
-          <h6 class="mb-1">{{ r[1] }}</h6>
+          <h6 class="mb-1">{{ r[1] }} <span class="reminder-priority priority-{{ r[5] or 'medium' }}">{{ (r[5] or 'medium')|title }}</span></h6>
           <p class="mb-1 small">{{ r[2] }}</p>
           <small class="text-muted">📅 {{ r[3] }} ⏰ {{ r[4] }}</small>
         </div>
@@ -704,7 +784,7 @@
       </div>
       {% endfor %}
     {% else %}
-      <p class="text-muted text-center py-3">No reminders added yet.</p>
+      <p class="text-muted text-center py-3">No reminders added yet. Start by adding one above!</p>
     {% endif %}
   </div>
 
@@ -750,8 +830,8 @@
           title: "{{ r[1]|e }}", 
           start: "{{ r[3] }}T{{ r[4] }}", 
           description: "{{ r[2]|e }}",
-          backgroundColor: 'var(--nav-hover)',
-          borderColor: 'var(--nav-hover)'
+          backgroundColor: 'var(--primary)',
+          borderColor: 'var(--primary)'
         },
         {% endfor %}
       ],
@@ -765,6 +845,15 @@
     setTimeout(function() {
       toggleChat(true);
     }, 1500);
+    
+    // Set today's date as default for the date input
+    const today = new Date();
+    const formattedDate = today.toISOString().split('T')[0];
+    document.getElementById('date').value = formattedDate;
+    
+    // Set next hour as default for the time input
+    const nextHour = (today.getHours() + 1) % 24;
+    document.getElementById('time').value = `${nextHour.toString().padStart(2, '0')}:00`;
   });
 
   function submitReminder(e) {
@@ -775,6 +864,7 @@
     formData.append("description", document.getElementById("description").value);
     formData.append("date", document.getElementById("date").value);
     formData.append("time", document.getElementById("time").value);
+    formData.append("priority", document.getElementById("priority").value);
 
     fetch("/add_reminder", {
       method: "POST",
@@ -787,7 +877,7 @@
   }
 
   function deleteReminder(id) {
-    if (confirm("Delete this reminder?")) {
+    if (confirm("Are you sure you want to delete this reminder?")) {
       fetch(`/delete_reminder/${id}`, { method: "POST" })
         .then(res => res.text())
         .then(msg => {
@@ -823,7 +913,7 @@
     }
 
     if (!chatBox.dataset.started) {
-        chatBox.innerHTML += `<div class="chat-message bot-message"><b>StudBot:</b> Hello! I'm your study assistant 🤖. How can I help you today?</div>`;
+        chatBox.innerHTML += `<div class="chat-message bot-message"><b>StudBot:</b> Hello ${document.querySelector('.welcome-title').textContent.split(' ')[2]}! I'm your study assistant 🤖. How can I help you today?</div>`;
         chatBox.dataset.started = "true";
         chatBox.scrollTop = chatBox.scrollHeight;
     }
