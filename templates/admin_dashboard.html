@@ -6,6 +6,7 @@
   <title>StudApp - Admin Dashboard</title>
 
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 
   <style>
     :root {
@@ -15,6 +16,8 @@
       --accent: #3f51b5;
       --accent2: #2196f3;
       --btn-hover: #1e88e5;
+      --danger: #f44336;
+      --success: #4caf50;
     }
     [data-theme="dark"] {
       --bg: #121212;
@@ -23,6 +26,8 @@
       --accent: #7986cb;
       --accent2: #64b5f6;
       --btn-hover: #5c6bc0;
+      --danger: #e57373;
+      --success: #81c784;
     }
 
     body {
@@ -45,11 +50,7 @@
     header { top: 0; }
     footer { bottom: 0; text-align: center; font-size: 0.9rem; color: var(--text); }
 
-    .header-content {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
+    .header-content { display: flex; justify-content: space-between; align-items: center; }
 
     .container {
       max-width: 1100px;
@@ -65,18 +66,14 @@
       margin-bottom: 30px;
       transition: background 0.3s ease-in-out, color 0.3s ease-in-out;
     }
-    .card h5, .card h6, .card p, .card small {
-      color: var(--text) !important;
-    }
 
-    .btn-outline-primary {
-      color: var(--accent);
-      border-color: var(--accent);
-    }
-    .btn-outline-primary:hover {
-      background-color: var(--accent);
-      color: white;
-    }
+    .card h5, .card h6, .card p, .card small { color: var(--text) !important; }
+
+    .btn-outline-primary { color: var(--accent); border-color: var(--accent); }
+    .btn-outline-primary:hover { background-color: var(--accent); color: white; }
+    .btn-danger { background-color: var(--danger); border-color: var(--danger); }
+    .btn-danger:hover { opacity: 0.9; }
+    .btn-success { background-color: var(--success); border-color: var(--success); }
 
     .welcome-box {
       background: linear-gradient(135deg, #3f51b5, #2196f3);
@@ -88,32 +85,21 @@
       text-align: center;
       margin-bottom: 30px;
     }
+    .welcome-title { font-size: 2rem; font-weight: 700; margin-bottom: 10px; animation: pulse 2s infinite; }
+    .welcome-desc { font-size: 1.1rem; font-weight: 500; opacity: 0.95; }
 
-    .welcome-title {
-      font-size: 2rem;
-      font-weight: 700;
-      margin-bottom: 10px;
-      animation: pulse 2s infinite;
-    }
-    .welcome-desc {
-      font-size: 1.1rem;
-      font-weight: 500;
-      opacity: 0.95;
-    }
+    @keyframes slideFadeIn { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.03); } 100% { transform: scale(1); } }
 
-    @keyframes slideFadeIn {
-      from { opacity: 0; transform: translateY(-20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    @keyframes pulse {
-      0% { transform: scale(1); }
-      50% { transform: scale(1.03); }
-      100% { transform: scale(1); }
-    }
-
-    table {
-      color: var(--text) !important;
-    }
+    table { color: var(--text) !important; }
+    .search-box { position: relative; margin-bottom: 20px; }
+    .search-box input { width: 100%; padding: 10px 15px 10px 40px; border-radius: 8px; border: 1px solid rgba(0,0,0,0.1); background-color: var(--card-bg); color: var(--text); }
+    .search-box i { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--text); opacity: 0.7; }
+    .status-badge { padding: 4px 10px; border-radius: 20px; font-size: 0.8rem; }
+    .status-active { background-color: rgba(76, 175, 80, 0.2); color: var(--success); }
+    .status-inactive { background-color: rgba(244, 67, 54, 0.2); color: var(--danger); }
+    .action-buttons { display: flex; gap: 5px; }
+    .action-btn { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 6px; }
   </style>
 </head>
 
@@ -135,15 +121,16 @@
 <div class="container">
   <div class="welcome-box">
     <h2 class="fw-bold welcome-title">👋 Welcome Admin</h2>
-    <p class="welcome-desc">Here you can monitor users and reminders across StudApp.</p>
+    <p class="welcome-desc">Manage users, monitor activity, and control access across StudApp.</p>
   </div>
 
+  <!-- Overview Card -->
   <div class="card text-center">
     <h5 class="mb-3">📊 Overview</h5>
     <div class="row">
       <div class="col-md-6">
         <div class="p-3">
-          <h2 class="text-primary">{{ users | length }}</h2>
+          <h2 class="text-primary">{{ users|length }}</h2>
           <p>Total Registered Users</p>
         </div>
       </div>
@@ -156,57 +143,236 @@
     </div>
   </div>
 
+  <!-- Users Card with Search -->
   <div class="card">
-    <h5 class="mb-3">👥 Registered Users</h5>
-    {% if users %}
-      {% for u in users %}
-      <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-2">
-        <div>
-          <h6 class="mb-0">{{ u[1] }}</h6>
-          <small class="text-muted">📧 {{ u[2] }}</small>
-        </div>
-        <span class="badge bg-primary">{{ u[3]|capitalize }}</span>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h5 class="mb-0">👥 Registered Users</h5>
+      <div class="search-box">
+        <i class="fas fa-search"></i>
+        <input type="text" id="userSearch" placeholder="Search users..." />
       </div>
-      {% endfor %}
-    {% else %}
-      <p class="text-muted">No users found.</p>
-    {% endif %}
+    </div>
+    <div class="table-responsive">
+      <table class="user-table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Role</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for u in users %}
+          <tr>
+            <td>{{ u[1] }}</td>
+            <td>{{ u[2] }}</td>
+            <td><span class="badge bg-primary">{{ u[3]|capitalize }}</span></td>
+            <td>
+              {% if u[4] == 'active' %}
+                <span class="status-badge status-active">Active</span>
+              {% else %}
+                <span class="status-badge status-inactive">Revoked</span>
+              {% endif %}
+            </td>
+            <td>
+              <div class="action-buttons">
+                <button class="btn btn-sm btn-outline-primary action-btn" data-bs-toggle="modal" data-bs-target="#userDetailsModal">
+                  <i class="fas fa-eye"></i>
+                </button>
+                {% if u[4] == 'active' %}
+                  <button class="btn btn-sm btn-danger action-btn revoke-access" data-userid="{{ u[0] }}" data-username="{{ u[1] }}">
+                    <i class="fas fa-user-slash"></i>
+                  </button>
+                {% else %}
+                  <button class="btn btn-sm btn-success action-btn restore-access" data-userid="{{ u[0] }}" data-username="{{ u[1] }}">
+                    <i class="fas fa-user-check"></i>
+                  </button>
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
   </div>
 
+  <!-- Recent Reminders -->
   <div class="card">
     <h5 class="mb-3">⏰ Recent Reminders</h5>
-    {% if reminders %}
-      {% for r in reminders %}
-        <div class="border-bottom pb-2 mb-2">
-          <h6 class="mb-0">{{ r[1] }} <small class="text-muted">by {{ r[5] }}</small></h6>
-          <p class="text-muted mb-1">{{ r[2] }}</p>
-          <small class="text-primary">📅 {{ r[3] }} ⏰ {{ r[4] }}</small>
-        </div>
-      {% endfor %}
+    {% for r in reminders %}
+    <div class="border-bottom pb-2 mb-2">
+      <h6 class="mb-0">{{ r[1] }} <small class="text-muted">by {{ r[5] }}</small></h6>
+      <p class="text-muted mb-1">{{ r[2] }}</p>
+      <small class="text-primary">📅 {{ r[3] }} ⏰ {{ r[4] }}</small>
+    </div>
     {% else %}
       <p class="text-muted">No reminders found.</p>
-    {% endif %}
+    {% endfor %}
   </div>
 
 </div>
 
+<!-- Footer -->
 <footer>© 2025 StudApp Admin. All rights reserved.
-  <img src="/static/dnlogo.png" style="height:30px" alt="StudApp Logo" data-aos="zoom-in">
+  <img src="/static/dnlogo.png" style="height:30px" alt="StudApp Logo">
 </footer>
 
+<!-- Modals -->
+<div class="modal fade" id="userDetailsModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">User Details</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div><strong>Name:</strong> <span id="modalUserName"></span></div>
+        <div><strong>Email:</strong> <span id="modalUserEmail"></span></div>
+        <div><strong>Role:</strong> <span id="modalUserRole" class="badge bg-primary"></span></div>
+        <div><strong>Status:</strong> <span id="modalUserStatus" class="status-badge"></span></div>
+        <div><strong>Registration Date:</strong> <span id="modalUserRegDate"></span></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="button" class="btn" id="modalRevokeBtn"></button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="confirmationModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="confirmationModalTitle">Confirm Action</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <p id="confirmationModalText"></p>
+        <p class="text-danger" id="confirmationWarning"></p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn" id="confirmActionBtn"></button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
 <script>
-  
+  // ---------- THEME SWITCH ----------
   const themeSwitch = document.getElementById('themeSwitch');
   const currentTheme = localStorage.getItem('theme') || 'light';
   document.documentElement.setAttribute('data-theme', currentTheme);
-  if (currentTheme === 'dark') themeSwitch.checked = true;
-
+  if(currentTheme === 'dark') themeSwitch.checked = true;
   themeSwitch.addEventListener('change', () => {
     const theme = themeSwitch.checked ? 'dark' : 'light';
     document.documentElement.setAttribute('data-theme', theme);
     localStorage.setItem('theme', theme);
   });
+
+  // ---------- USER SEARCH ----------
+  document.getElementById('userSearch').addEventListener('input', function(e) {
+    const searchTerm = e.target.value.toLowerCase();
+    document.querySelectorAll('.user-table tbody tr').forEach(row => {
+      const name = row.cells[0].textContent.toLowerCase();
+      const email = row.cells[1].textContent.toLowerCase();
+      row.style.display = (name.includes(searchTerm) || email.includes(searchTerm)) ? '' : 'none';
+    });
+  });
+
+  // ---------- STORE USERS FOR MODAL ----------
+  const users = {};
+  {% for u in users %}
+    users['{{ u[0] }}'] = {
+      id: '{{ u[0] }}',
+      name: '{{ u[1] }}',
+      email: '{{ u[2] }}',
+      role: '{{ u[3] }}',
+      status: '{{ u[4] }}',
+      date_joined: '{{ u[6] }}'
+    };
+  {% endfor %}
+
+  // ---------- MODAL POPULATION ----------
+  const userDetailsModal = document.getElementById('userDetailsModal');
+  userDetailsModal.addEventListener('show.bs.modal', function(event) {
+    const button = event.relatedTarget;
+    const userId = button.dataset.userid;
+    const user = users[userId];
+    if(user){
+      document.getElementById('modalUserName').textContent = user.name;
+      document.getElementById('modalUserEmail').textContent = user.email;
+      document.getElementById('modalUserRole').textContent = user.role.charAt(0).toUpperCase() + user.role.slice(1);
+      document.getElementById('modalUserRole').className = 'badge bg-' + (user.role==='admin'?'success':'primary');
+      document.getElementById('modalUserStatus').textContent = user.status==='active'?'Active':'Revoked';
+      document.getElementById('modalUserStatus').className = 'status-badge ' + (user.status==='active'?'status-active':'status-inactive');
+      document.getElementById('modalUserRegDate').textContent = user.date_joined;
+
+      const actionBtn = document.getElementById('modalRevokeBtn');
+      if(user.status==='active'){
+        actionBtn.textContent='Revoke Access';
+        actionBtn.className='btn btn-danger';
+      } else{
+        actionBtn.textContent='Restore Access';
+        actionBtn.className='btn btn-success';
+      }
+      actionBtn.dataset.userid = userId;
+    }
+  });
+
+  // ---------- REVOKE / RESTORE ACTION ----------
+  function handleAction(button, actionType){
+    const userId = button.dataset.userid;
+    const user = users[userId];
+    if(!user) return;
+
+    // Update frontend first
+    const row = document.querySelector(`button[data-userid="${userId}"]`).closest('tr');
+    const statusBadge = row.querySelector('.status-badge');
+    const actionButtons = row.querySelector('.action-buttons');
+
+    if(actionType==='revoke'){
+      user.status = 'revoked';
+      statusBadge.textContent = 'Revoked';
+      statusBadge.className = 'status-badge status-inactive';
+      actionButtons.innerHTML = `
+        <button class="btn btn-sm btn-outline-primary action-btn" data-bs-toggle="modal" data-bs-target="#userDetailsModal" data-userid="${userId}">
+          <i class="fas fa-eye"></i>
+        </button>
+        <button class="btn btn-sm btn-success action-btn" onclick="handleAction(this, 'restore')" data-userid="${userId}">
+          <i class="fas fa-user-check"></i>
+        </button>
+      `;
+    } else if(actionType==='restore'){
+      user.status = 'active';
+      statusBadge.textContent = 'Active';
+      statusBadge.className = 'status-badge status-active';
+      actionButtons.innerHTML = `
+        <button class="btn btn-sm btn-outline-primary action-btn" data-bs-toggle="modal" data-bs-target="#userDetailsModal" data-userid="${userId}">
+          <i class="fas fa-eye"></i>
+        </button>
+        <button class="btn btn-sm btn-danger action-btn" onclick="handleAction(this, 'revoke')" data-userid="${userId}">
+          <i class="fas fa-user-slash"></i>
+        </button>
+      `;
+    }
+
+  }
+
+  // ---------- INITIAL ACTION BUTTON SETUP ----------
+  document.querySelectorAll('.revoke-access').forEach(btn => {
+    btn.addEventListener('click', () => handleAction(btn, 'revoke'));
+  });
+  document.querySelectorAll('.restore-access').forEach(btn => {
+    btn.addEventListener('click', () => handleAction(btn, 'restore'));
+  });
 </script>
+
 </body>
 </html>

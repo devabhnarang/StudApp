@@ -192,6 +192,44 @@ def admin_dashboard():
         cur.close()
         conn.close()
 
+# ---------- Admin: Manage Users ----------
+
+@app.route('/revoke_user/<int:user_id>', methods=['POST'])
+@login_required
+@admin_required
+def revoke_user(user_id):
+    conn = get_db_connection()
+    cur = conn.cursor()
+    try:
+        cur.execute("UPDATE users SET status='revoked' WHERE id=%s", (user_id,))
+        conn.commit()
+        return jsonify({'status': 'success', 'message': 'User access revoked'})
+    except Exception as e:
+        print("❌ Revoke User Error:", e)
+        return jsonify({'status': 'error', 'message': 'Failed to revoke user'})
+    finally:
+        cur.close()
+        conn.close()
+
+@app.route('/restore_user/<int:user_id>', methods=['POST'])
+@login_required
+@admin_required
+def restore_user(user_id):
+    conn = get_db_connection()
+    cur = conn.cursor()
+    try:
+        cur.execute("UPDATE users SET status='active' WHERE id=%s", (user_id,))
+        conn.commit()
+        return jsonify({'status': 'success', 'message': 'User access restored'})
+    except Exception as e:
+        print("❌ Restore User Error:", e)
+        return jsonify({'status': 'error', 'message': 'Failed to restore user'})
+    finally:
+        cur.close()
+        conn.close()
+
+
+
 # ---------- Reminders ----------
 @app.route('/add_reminder', methods=['POST'])
 @login_required
