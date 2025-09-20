@@ -1,13 +1,14 @@
 import os
 import tempfile
 from flask import Flask, request, render_template, redirect, jsonify
-from flask_mysqldb import MySQL
 from flask_cors import CORS
 from werkzeug.security import generate_password_hash, check_password_hash
 from PyPDF2 import PdfReader
 from docx import Document
 from dotenv import load_dotenv
 import openai
+import psycopg2
+from psycopg2.extras import RealDictCursor
 
 # Load environment variables
 load_dotenv()
@@ -15,18 +16,22 @@ load_dotenv()
 app = Flask(__name__)
 CORS(app)
 
-# MySQL config from .env
-app.config['MYSQL_HOST'] = os.getenv('DB_HOST', 'localhost')
-app.config['MYSQL_USER'] = os.getenv('DB_USER', 'root')
-app.config['MYSQL_PASSWORD'] = os.getenv('DB_PASS', '')
-app.config['MYSQL_DB'] = os.getenv('DB_NAME', 'studapp')
-mysql = MySQL(app)
+# PostgreSQL connection helper
+def get_db_connection():
+    conn = psycopg2.connect(
+        host=os.getenv('DB_HOST', 'localhost'),
+        database=os.getenv('DB_NAME', 'studapp'),
+        user=os.getenv('DB_USER', 'postgres'),
+        password=os.getenv('DB_PASS', '')
+    )
+    return conn
 
 # Groq API config
 openai.api_key = os.getenv("GROQ_API_KEY")
 openai.base_url = 'https://api.groq.com/openai/v1/'
 GROQ_MODEL = 'llama-3.3-70b-versatile'
 
+# ---------- ROUTES ---------- #
 
 @app.route('/')
 def home_page():
@@ -45,27 +50,30 @@ def signup():
     password = request.form['password']
     role = 'student'
     hashed_password = generate_password_hash(password)
-    cur = mysql.connection.cursor()
+    conn = get_db_connection()
+    cur = conn.cursor()
     try:
         cur.execute("SELECT id FROM users WHERE email = %s", (email,))
         if cur.fetchone():
             return 'Email already exists'
         cur.execute("INSERT INTO users (name, email, password, role) VALUES (%s, %s, %s, %s)",
                     (name, email, hashed_password, role))
-        mysql.connection.commit()
+        conn.commit()
         return 'Signup successful'
     except Exception as e:
         print("❌ Signup Error:", e)
         return 'Signup failed'
     finally:
         cur.close()
+        conn.close()
 
 
 @app.route('/login', methods=['POST'])
 def login():
     email = request.form['email']
     password = request.form['password']
-    cur = mysql.connection.cursor()
+    conn = get_db_connection()
+    cur = conn.cursor()
     try:
         cur.execute("SELECT id, name, role, password FROM users WHERE email = %s", (email,))
         user = cur.fetchone()
@@ -77,11 +85,13 @@ def login():
         return 'Login error'
     finally:
         cur.close()
+        conn.close()
 
 
 @app.route('/dashboard/<int:user_id>')
 def dashboard_redirect(user_id):
-    cur = mysql.connection.cursor()
+    conn = get_db_connection()
+    cur = conn.cursor()
     try:
         cur.execute("SELECT role FROM users WHERE id = %s", (user_id,))
         result = cur.fetchone()
@@ -94,11 +104,13 @@ def dashboard_redirect(user_id):
         return "Failed to redirect"
     finally:
         cur.close()
+        conn.close()
 
 
 @app.route('/student_dashboard/<int:user_id>')
 def student_dashboard(user_id):
-    cur = mysql.connection.cursor()
+    conn = get_db_connection()
+    cur = conn.cursor()
     try:
         cur.execute(
             "SELECT id, title, description, date, time FROM reminders WHERE user_id = %s ORDER BY date, time",
@@ -111,11 +123,13 @@ def student_dashboard(user_id):
         return 'Error loading dashboard'
     finally:
         cur.close()
+        conn.close()
 
 
 @app.route('/admin_dashboard/<int:user_id>')
 def admin_dashboard(user_id):
-    cur = mysql.connection.cursor()
+    conn = get_db_connection()
+    cur = conn.cursor()
     try:
         cur.execute("SELECT id, name, email, role FROM users ORDER BY id")
         users = cur.fetchall()
@@ -144,6 +158,7 @@ def admin_dashboard(user_id):
         return 'Error loading dashboard'
     finally:
         cur.close()
+        conn.close()
 
 
 @app.route('/add_reminder', methods=['POST'])
@@ -154,37 +169,42 @@ def add_reminder():
         description = request.form.get('description')
         date = request.form.get('date')
         time = request.form.get('time')
-        cur = mysql.connection.cursor()
+        conn = get_db_connection()
+        cur = conn.cursor()
         cur.execute(
             "INSERT INTO reminders (user_id, title, description, date, time) VALUES (%s, %s, %s, %s, %s)",
             (user_id, title, description, date, time)
         )
-        mysql.connection.commit()
+        conn.commit()
         return 'Reminder added successfully!'
     except Exception as e:
         print("❌ Add Reminder Error:", e)
         return 'Failed to add reminder'
     finally:
         cur.close()
+        conn.close()
 
 
 @app.route('/delete_reminder/<int:reminder_id>', methods=['POST'])
 def delete_reminder(reminder_id):
-    cur = mysql.connection.cursor()
+    conn = get_db_connection()
+    cur = conn.cursor()
     try:
         cur.execute("DELETE FROM reminders WHERE id = %s", (reminder_id,))
-        mysql.connection.commit()
+        conn.commit()
         return 'Reminder deleted successfully'
     except Exception as e:
         print("❌ Delete Error:", e)
         return 'Failed to delete reminder'
     finally:
         cur.close()
+        conn.close()
 
 
 @app.route('/profile/<int:user_id>')
 def profile(user_id):
-    cur = mysql.connection.cursor()
+    conn = get_db_connection()
+    cur = conn.cursor()
     try:
         cur.execute("SELECT id, name, email, date_joined FROM users WHERE id = %s", (user_id,))
         row = cur.fetchone()
@@ -194,7 +214,7 @@ def profile(user_id):
             "id": row[0],
             "name": row[1],
             "email": row[2],
-            "date_joined": row[3].strftime('%d %B %Y')
+            "date_joined": row[3].strftime('%d %B %Y') if row[3] else ""
         }
         return render_template("profile.html", user=user)
     except Exception as e:
@@ -202,6 +222,7 @@ def profile(user_id):
         return "Failed to load profile"
     finally:
         cur.close()
+        conn.close()
 
 
 @app.route('/chatbot', methods=['POST'])
@@ -278,7 +299,8 @@ def summarize_notes_all_pages():
 
 @app.route('/edit_profile/<int:user_id>', methods=['GET', 'POST'])
 def edit_profile(user_id):
-    cur = mysql.connection.cursor()
+    conn = get_db_connection()
+    cur = conn.cursor()
     try:
         if request.method == 'POST':
             new_name = request.form.get('name')
@@ -297,7 +319,7 @@ def edit_profile(user_id):
                     (new_name, new_email, user_id)
                 )
 
-            mysql.connection.commit()
+            conn.commit()
             return redirect(f'/profile/{user_id}')
 
         cur.execute("SELECT id, name, email FROM users WHERE id = %s", (user_id,))
@@ -312,7 +334,9 @@ def edit_profile(user_id):
         return "Failed to update profile"
     finally:
         cur.close()
+        conn.close()
+
 
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5000))  
+    port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port, debug=True)
