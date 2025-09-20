@@ -36,8 +36,7 @@ openai.api_key = os.getenv("GROQ_API_KEY")
 openai.base_url = 'https://api.groq.com/openai/v1/'
 GROQ_MODEL = 'llama-3.3-70b-versatile'
 
-
-# ---------- Helpers ----------
+# ---------- Decorators ----------
 def login_required(f):
     @wraps(f)
     def wrapper(*args, **kwargs):
@@ -54,8 +53,8 @@ def admin_required(f):
         return f(*args, **kwargs)
     return wrapper
 
+# ---------- Routes ----------
 
-# ---------- ROUTES ----------
 @app.route('/')
 def home_page():
     return render_template('home.html')
@@ -63,7 +62,6 @@ def home_page():
 @app.route('/index.html')
 def index():
     return render_template('index.html')
-
 
 @app.route('/signup', methods=['POST'])
 def signup():
@@ -92,7 +90,6 @@ def signup():
         cur.close()
         conn.close()
 
-
 @app.route('/login', methods=['POST'])
 def login():
     email = request.form['email']
@@ -116,27 +113,27 @@ def login():
         cur.close()
         conn.close()
 
-
 @app.route('/logout')
 def logout():
     session.clear()
     return redirect('/index.html')
 
-
+# ---------- Dashboard Routes ----------
 @app.route('/dashboard')
 @login_required
 def dashboard_redirect():
-    user_id = session['user_id']
     role = session['role']
-    return redirect(f'/{role}_dashboard/{user_id}')
+    if role == "admin":
+        return redirect(url_for('admin_dashboard'))
+    return redirect(url_for('student_dashboard'))
 
-
-@app.route('/student_dashboard/<int:user_id>')
+@app.route('/student_dashboard')
 @login_required
-def student_dashboard(user_id):
-    if session['role'] != 'admin' and session['user_id'] != user_id:
-        return "Forbidden", 403
+def student_dashboard():
+    if session['role'] == 'admin':
+        return "Admins cannot access student dashboard", 403
 
+    user_id = session['user_id']
     conn = get_db_connection()
     cur = conn.cursor()
     try:
@@ -145,10 +142,12 @@ def student_dashboard(user_id):
             (user_id,)
         )
         reminders = cur.fetchall()
-        return render_template('student_dashboard.html',
-                               user_id=user_id,
-                               reminders=reminders,
-                               username=session['name'])
+        return render_template(
+            'student_dashboard.html',
+            user_id=user_id,
+            reminders=reminders,
+            username=session['name']
+        )
     except Exception as e:
         print("❌ Student Dashboard Error:", e)
         return 'Error loading dashboard'
@@ -156,14 +155,11 @@ def student_dashboard(user_id):
         cur.close()
         conn.close()
 
-
-@app.route('/admin_dashboard/<int:user_id>')
+@app.route('/admin_dashboard')
 @login_required
 @admin_required
-def admin_dashboard(user_id):
-    if session['user_id'] != user_id:
-        return "Forbidden", 403
-
+def admin_dashboard():
+    user_id = session['user_id']
     conn = get_db_connection()
     cur = conn.cursor()
     try:
@@ -197,7 +193,7 @@ def admin_dashboard(user_id):
         cur.close()
         conn.close()
 
-
+# ---------- Reminder Routes ----------
 @app.route('/add_reminder', methods=['POST'])
 @login_required
 def add_reminder():
@@ -223,7 +219,6 @@ def add_reminder():
         cur.close()
         conn.close()
 
-
 @app.route('/delete_reminder/<int:reminder_id>', methods=['POST'])
 @login_required
 def delete_reminder(reminder_id):
@@ -247,13 +242,11 @@ def delete_reminder(reminder_id):
         cur.close()
         conn.close()
 
-
-@app.route('/profile/<int:user_id>')
+# ---------- Profile Routes ----------
+@app.route('/profile')
 @login_required
-def profile(user_id):
-    if session['role'] != 'admin' and session['user_id'] != user_id:
-        return "Forbidden", 403
-
+def profile():
+    user_id = session['user_id']
     conn = get_db_connection()
     cur = conn.cursor()
     try:
@@ -275,7 +268,44 @@ def profile(user_id):
         cur.close()
         conn.close()
 
+@app.route('/edit_profile', methods=['GET', 'POST'])
+@login_required
+def edit_profile():
+    user_id = session['user_id']
+    conn = get_db_connection()
+    cur = conn.cursor()
+    try:
+        if request.method == 'POST':
+            new_name = request.form.get('name')
+            new_email = request.form.get('email')
+            new_password = request.form.get('password')
 
+            if new_password:
+                hashed_password = generate_password_hash(new_password)
+                cur.execute(
+                    "UPDATE users SET name=%s, email=%s, password=%s WHERE id=%s",
+                    (new_name, new_email, hashed_password, user_id)
+                )
+            else:
+                cur.execute(
+                    "UPDATE users SET name=%s, email=%s WHERE id=%s",
+                    (new_name, new_email, user_id)
+                )
+            conn.commit()
+            return redirect(url_for('profile'))
+
+        cur.execute("SELECT id, name, email FROM users WHERE id=%s", (user_id,))
+        row = cur.fetchone()
+        user = {"id": row['id'], "name": row['name'], "email": row['email']}
+        return render_template('edit_profile.html', user=user)
+    except Exception as e:
+        print("❌ Edit Profile Error:", e)
+        return "Failed to update profile"
+    finally:
+        cur.close()
+        conn.close()
+
+# ---------- Chatbot ----------
 @app.route('/chatbot', methods=['POST'])
 @login_required
 def chatbot():
@@ -294,14 +324,14 @@ def chatbot():
         print("❌ Groq API error:", e)
         return {'response': '❌ Failed to contact StudBot'}, 500
 
-
-@app.route('/notes_summarizer/<int:user_id>')
+# ---------- Notes Summarizer ----------
+@app.route('/notes_summarizer')
 @login_required
-def notes_summarizer(user_id):
-    if session['role'] != 'admin' and session['user_id'] != user_id:
-        return "Forbidden", 403
+def notes_summarizer():
+    if session['role'] == 'admin':
+        return "Admins cannot summarize notes", 403
+    user_id = session['user_id']
     return render_template("notes_summarizer.html", user_id=user_id)
-
 
 def extract_text_by_page_pdf(pdf_file):
     reader = PdfReader(pdf_file)
@@ -324,7 +354,6 @@ def summarize_with_groq(text):
         return response.choices[0].message.content.strip()
     except Exception as e:
         return f"❌ Summary error: {str(e)}"
-
 
 @app.route('/summarize_notes_all_pages', methods=['POST'])
 @login_required
@@ -350,51 +379,7 @@ def summarize_notes_all_pages():
         if 'temp' in locals() and os.path.exists(temp.name):
             os.remove(temp.name)
 
-
-@app.route('/edit_profile/<int:user_id>', methods=['GET', 'POST'])
-@login_required
-def edit_profile(user_id):
-    if session['role'] != 'admin' and session['user_id'] != user_id:
-        return "Forbidden", 403
-
-    conn = get_db_connection()
-    cur = conn.cursor()
-    try:
-        if request.method == 'POST':
-            new_name = request.form.get('name')
-            new_email = request.form.get('email')
-            new_password = request.form.get('password')
-
-            if new_password:
-                hashed_password = generate_password_hash(new_password)
-                cur.execute(
-                    "UPDATE users SET name = %s, email = %s, password = %s WHERE id = %s",
-                    (new_name, new_email, hashed_password, user_id)
-                )
-            else:
-                cur.execute(
-                    "UPDATE users SET name = %s, email = %s WHERE id = %s",
-                    (new_name, new_email, user_id)
-                )
-
-            conn.commit()
-            return redirect(f'/profile/{user_id}')
-
-        cur.execute("SELECT id, name, email FROM users WHERE id = %s", (user_id,))
-        row = cur.fetchone()
-        if not row:
-            return "User not found", 404
-        user = {"id": row['id'], "name": row['name'], "email": row['email']}
-        return render_template('edit_profile.html', user=user)
-
-    except Exception as e:
-        print("❌ Edit Profile Error:", e)
-        return "Failed to update profile"
-    finally:
-        cur.close()
-        conn.close()
-
-
+# ---------- Run App ----------
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port, debug=True)
