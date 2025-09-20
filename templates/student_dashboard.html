@@ -679,8 +679,8 @@
   <div class="header-content">
     <h4 class="mb-0"><i class="fas fa-graduation-cap me-2"></i>StudApp Dashboard</h4>
     <div class="d-flex align-items-center gap-3">
-      <a href="/profile/{{ user_id }}" class="btn btn-sm btn-outline-primary">👤 Profile</a>
-      <a href="/notes_summarizer/{{ user_id }}" class="btn btn-sm btn-outline-primary">📝 Notes Summarizer</a>
+      <a href="/profile" class="btn btn-sm btn-outline-primary">👤 Profile</a>
+      <a href="/notes_summarizer" class="btn btn-sm btn-outline-primary">📝 Notes Summarizer</a>
       <div class="form-check form-switch">
         <input class="form-check-input" type="checkbox" id="themeSwitch" />
         <label class="form-check-label" for="themeSwitch">🌙</label>
@@ -701,31 +701,27 @@
   <div class="row mb-4">
     <div class="col-md-4 mb-3">
       <div class="card stats-card">
-        <div class="stats-icon">
-          <i class="fas fa-tasks"></i>
-        </div>
+        <div class="stats-icon"><i class="fas fa-tasks"></i></div>
         <div class="stats-number">{{ reminders|length }}</div>
         <div class="stats-label">Active Reminders</div>
       </div>
     </div>
     <div class="col-md-4 mb-3">
       <div class="card stats-card">
-        <div class="stats-icon">
-          <i class="fas fa-calendar-check"></i>
-        </div>
+        <div class="stats-icon"><i class="fas fa-calendar-check"></i></div>
         <div class="stats-number">{{ today_reminders }}</div>
         <div class="stats-label">Due Today</div>
       </div>
     </div>
-    <div class="col-md-4 mb-3">
-      <div class="card stats-card">
-        <div class="stats-icon">
-          <i class="fas fa-robot"></i>
-        </div>
-        <div class="stats-number">24/7</div>
-        <div class="stats-label">StudBot Support</div>
+      <div class="col-md-4 mb-3">
+    <a href="/notes_summarizer/{{ user_id }}" style="text-decoration: none;">
+      <div class="card stats-card" style="cursor: pointer;">
+        <div class="stats-icon"><i class="fas fa-file-alt"></i></div>
+        <div class="stats-number">SUMMARIZER</div>
+        <div class="stats-label">Notes Summarizer</div>
+        <div class="stats-label">Click to get Ai assistance for your notes !</div>
       </div>
-    </div>
+    </a>
   </div>
 
   <div class="row">
@@ -776,11 +772,17 @@
       {% for r in reminders %}
       <div class="reminder-item">
         <div class="flex-grow-1">
-          <h6 class="mb-1">{{ r[1] }} <span class="reminder-priority priority-{{ r[5] or 'medium' }}">{{ (r[5] or 'medium')|title }}</span></h6>
-          <p class="mb-1 small">{{ r[2] }}</p>
-          <small class="text-muted">📅 {{ r[3] }} ⏰ {{ r[4] }}</small>
+          <h6 class="mb-1">{{ r.title }} 
+            <span class="reminder-priority priority-{{ r.priority or 'medium' }}">
+              {{ (r.priority or 'medium')|title }}
+            </span>
+          </h6>
+          <p class="mb-1 small">{{ r.description }}</p>
+          <small class="text-muted">📅 {{ r.date }} ⏰ {{ r.time }}</small>
         </div>
-        <button class="btn btn-sm btn-danger" onclick="deleteReminder({{ r[0] }})"><i class="fas fa-trash-alt"></i> Delete</button>
+        <button class="btn btn-sm btn-danger" onclick="deleteReminder({{ r.id }})">
+          <i class="fas fa-trash-alt"></i> Delete
+        </button>
       </div>
       {% endfor %}
     {% else %}
@@ -815,48 +817,33 @@
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
 
 <script>
-  document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded', function () {
     const calendar = new FullCalendar.Calendar(document.getElementById('calendar'), {
-      initialView: 'dayGridMonth',
-      height: 400,
-      headerToolbar: { 
-        start: 'title', 
-        center: '',
-        end: 'prev,next today' 
-      },
-      events: [
-        {% for r in reminders %}
-        { 
-          title: "{{ r[1]|e }}", 
-          start: "{{ r[3] }}T{{ r[4] }}", 
-          description: "{{ r[2]|e }}",
-          backgroundColor: 'var(--primary)',
-          borderColor: 'var(--primary)'
-        },
-        {% endfor %}
-      ],
-      eventClick: function(info) {
-        alert(info.event.title + "\n\n" + info.event.extendedProps.description);
-      }
+        initialView: 'dayGridMonth',
+        height: 400,
+        headerToolbar: { start: 'title', center: '', end: 'prev,next today' },
+        events: [
+          {% for r in reminders %}
+            { title: "{{ r.title|e }}", start: "{{ r.date }}T{{ r.time }}", description: "{{ r.description|e }}", backgroundColor: 'var(--primary)', borderColor: 'var(--primary)' },
+          {% endfor %}
+        ],
+        eventClick: function(info) {
+            alert(info.event.title + "\n\n" + info.event.extendedProps.description);
+        }
     });
     calendar.render();
-    
-    // Auto-open chat on page load
-    setTimeout(function() {
-      toggleChat(true);
-    }, 1500);
-    
-    // Set today's date as default for the date input
+
+    // Default date/time inputs
     const today = new Date();
-    const formattedDate = today.toISOString().split('T')[0];
-    document.getElementById('date').value = formattedDate;
-    
-    // Set next hour as default for the time input
+    document.getElementById('date').value = today.toISOString().split('T')[0];
     const nextHour = (today.getHours() + 1) % 24;
     document.getElementById('time').value = `${nextHour.toString().padStart(2, '0')}:00`;
-  });
 
-  function submitReminder(e) {
+    // Auto open chat
+    setTimeout(() => toggleChat(true), 1500);
+});
+
+function submitReminder(e) {
     e.preventDefault();
     const formData = new URLSearchParams();
     formData.append("user_id", document.getElementById("user_id").value);
@@ -874,110 +861,32 @@
       alert(msg);
       window.location.reload();
     });
-  }
+}
 
-  function deleteReminder(id) {
-    if (confirm("Are you sure you want to delete this reminder?")) {
-      fetch(`/delete_reminder/${id}`, { method: "POST" })
-        .then(res => res.text())
-        .then(msg => {
-          alert(msg);
-          window.location.reload();
-        });
-    }
-  }
+function deleteReminder(id) {
+    if (!confirm("Are you sure you want to delete this reminder?")) return;
+    fetch(`/delete_reminder/${id}`, { method: "POST" })
+      .then(res => res.text())
+      .then(msg => {
+        alert(msg);
+        window.location.reload();
+      });
+}
 
-  // Theme switching
-  const themeSwitch = document.getElementById('themeSwitch');
-  const currentTheme = localStorage.getItem('theme') || 'light';
-  document.documentElement.setAttribute('data-theme', currentTheme);
-  if (currentTheme === 'dark') themeSwitch.checked = true;
-
-  themeSwitch.addEventListener('change', () => {
+// Theme switching
+const themeSwitch = document.getElementById('themeSwitch');
+const currentTheme = localStorage.getItem('theme') || 'light';
+document.documentElement.setAttribute('data-theme', currentTheme);
+if (currentTheme === 'dark') themeSwitch.checked = true;
+themeSwitch.addEventListener('change', () => {
     const theme = themeSwitch.checked ? 'dark' : 'light';
     document.documentElement.setAttribute('data-theme', theme);
     localStorage.setItem('theme', theme);
-  });
+});
 
-  // Chat functionality
-  function toggleChat(forceOpen = false) {
-    const popup = document.getElementById('chatPopup');
-    const chatBox = document.getElementById('chatBox');
-
-    if (forceOpen) {
-        popup.style.display = 'flex';
-        popup.style.flexDirection = 'column';
-    } else {
-        popup.style.display = popup.style.display === 'flex' ? 'none' : 'flex';
-        popup.style.flexDirection = 'column';
-    }
-
-    if (!chatBox.dataset.started) {
-        chatBox.innerHTML += `<div class="chat-message bot-message"><b>StudBot:</b> Hello ${document.querySelector('.welcome-title').textContent.split(' ')[2]}! I'm your study assistant 🤖. How can I help you today?</div>`;
-        chatBox.dataset.started = "true";
-        chatBox.scrollTop = chatBox.scrollHeight;
-    }
-  }
-
-  function escapeHTML(str) {
-    return str.replace(/[&<>"']/g, (match) => ({
-      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
-    })[match]);
-  }
-
-  function sendMessage() {
-    const input = document.getElementById('chatInput');
-    const chatBox = document.getElementById('chatBox');
-    const message = input.value.trim();
-    if (!message) return;
-
-    chatBox.innerHTML += `<div class="chat-message user-message"><b>You:</b> ${escapeHTML(message)}</div>`;
-    input.value = '';
-    chatBox.scrollTop = chatBox.scrollHeight;
-
-    fetch('/chatbot', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message })
-    })
-    .then(res => res.json())
-    .then(data => {
-      chatBox.innerHTML += `<div class="chat-message bot-message"><b>StudBot:</b> ${escapeHTML(data.response)}</div>`;
-      chatBox.scrollTop = chatBox.scrollHeight;
-    }).catch(() => {
-      chatBox.innerHTML += `<div class="chat-message bot-message"><b>StudBot:</b> Sorry, I'm having trouble connecting right now.</div>`;
-      chatBox.scrollTop = chatBox.scrollHeight;
-    });
-  }
-
-  document.getElementById('chatInput').addEventListener('keypress', function (e) {
-    if (e.key === 'Enter') sendMessage();
-  });
-
-  // Draggable chat
-  let isDragging = false, offsetX, offsetY;
-  const popup = document.getElementById('chatPopup');
-  const header = document.getElementById('chatHeader');
-
-  header.addEventListener('mousedown', (e) => {
-    isDragging = true;
-    offsetX = e.clientX - popup.getBoundingClientRect().left;
-    offsetY = e.clientY - popup.getBoundingClientRect().top;
-    document.addEventListener('mousemove', moveChat);
-    document.addEventListener('mouseup', () => {
-      isDragging = false;
-      document.removeEventListener('mousemove', moveChat);
-      toggleChat(true);
-    });
-  });
-
-  function moveChat(e) {
-    if (!isDragging) return;
-    popup.style.left = (e.clientX - offsetX) + 'px';
-    popup.style.top = (e.clientY - offsetY) + 'px';
-    popup.style.right = 'auto';
-    popup.style.bottom = 'auto';
-  }
+// Chat functions (keep your existing code)
+function toggleChat(forceOpen=false){ /*...*/ }
+function sendMessage(){ /*...*/ }
 </script>
 
 </body>
