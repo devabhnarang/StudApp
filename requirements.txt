@@ -6,3 +6,4 @@ python-docx
 python-dotenv
 openai
 werkzeug
+psycopg2-binary==2.9.9
