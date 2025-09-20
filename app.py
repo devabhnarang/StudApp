@@ -313,7 +313,6 @@ def edit_profile(user_id):
     finally:
         cur.close()
 
-
 if __name__ == '__main__':
-    # For local dev
-    app.run(debug=True)
+    port = int(os.environ.get('PORT', 5000))  # Use Render's port if provided
+    app.run(host='0.0.0.0', port=port, debug=True)
