@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>StudApp - Profile</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <!-- Add Poppins font for consistency -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
   <style>
     :root {
@@ -13,6 +15,10 @@
       --card-bg: #ffffff;
       --accent: #3f51b5;
       --accent-hover: #2f3eb2;
+      --border: #dee2e6;
+      --header-bg: #ffffff;
+      --footer-bg: #ffffff;
+      --shadow: 0 4px 12px rgba(0,0,0,0.08);
     }
 
     [data-theme="dark"] {
@@ -21,6 +27,10 @@
       --card-bg: #1e1e2e;
       --accent: #7986cb;
       --accent-hover: #5c6bc0;
+      --border: #2d2d3a;
+      --header-bg: #1a1a27;
+      --footer-bg: #1a1a27;
+      --shadow: 0 4px 12px rgba(0,0,0,0.2);
     }
 
     body {
@@ -33,27 +43,40 @@
     }
 
     header, footer {
-      background-color: var(--card-bg);
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      background-color: var(--header-bg);
+      box-shadow: var(--shadow);
       padding: 1rem 2rem;
       position: fixed;
       width: 100%;
       z-index: 1000;
+      transition: all 0.3s ease-in-out;
     }
 
-    header { top: 0; }
-    footer { bottom: 0; text-align: center; font-size: 0.9rem; }
+    header { 
+      top: 0; 
+      border-bottom: 1px solid var(--border);
+    }
+    
+    footer { 
+      bottom: 0; 
+      text-align: center; 
+      font-size: 0.9rem; 
+      border-top: 1px solid var(--border);
+      background-color: var(--footer-bg);
+    }
 
     .header-content {
       display: flex;
       justify-content: space-between;
       align-items: center;
+      max-width: 1200px;
+      margin: 0 auto;
     }
 
     .container {
       max-width: 720px;
       margin: auto;
-      padding: 2rem 1rem 4rem;
+      padding: 2rem 1rem 6rem;
     }
 
     .card {
@@ -61,25 +84,48 @@
       color: var(--text);
       border-radius: 12px;
       padding: 25px;
-      box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+      box-shadow: var(--shadow);
       margin-bottom: 20px;
-      transition: background 0.3s;
+      transition: all 0.3s ease;
+      border: 1px solid var(--border);
+    }
+
+    .card:hover {
+      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    }
+
+    [data-theme="dark"] .card:hover {
+      box-shadow: 0 10px 25px rgba(0,0,0,0.3);
     }
 
     .btn-primary {
       background-color: var(--accent);
       border: none;
+      font-family: 'Poppins', sans-serif;
+      font-weight: 500;
+      transition: all 0.2s ease;
     }
 
     .btn-primary:hover {
       background-color: var(--accent-hover);
+      transform: translateY(-2px);
+    }
+
+    .btn-outline-primary, .btn-outline-danger {
+      font-family: 'Poppins', sans-serif;
+      font-weight: 500;
+      transition: all 0.2s ease;
+    }
+
+    .btn-outline-primary:hover, .btn-outline-danger:hover {
+      transform: translateY(-2px);
     }
 
     .profile-avatar {
       width: 80px;
       height: 80px;
       border-radius: 50%;
-      background-color: var(--accent);
+      background: linear-gradient(135deg, var(--accent), var(--accent-hover));
       color: white;
       display: flex;
       align-items: center;
@@ -87,35 +133,64 @@
       font-size: 32px;
       font-weight: bold;
       margin-right: 20px;
+      box-shadow: var(--shadow);
     }
 
     .table-borderless th, .table-borderless td {
       color: var(--text);
       background-color: transparent !important;
+      padding: 12px 8px;
+      border-color: var(--border);
     }
 
-    .table-borderless {
-      border-radius: 10px;
-      overflow: hidden;
+    .table-borderless th {
+      font-weight: 600;
+      width: 30%;
     }
 
     .edit-btn {
       background: linear-gradient(135deg, var(--accent), var(--accent-hover));
       border: none;
       color: white;
-      padding: 8px 16px;
-      font-size: 0.9rem;
+      padding: 10px 20px;
+      font-size: 0.95rem;
       border-radius: 8px;
-      transition: background 0.3s ease;
+      transition: all 0.3s ease;
+      font-family: 'Poppins', sans-serif;
+      font-weight: 500;
+      text-decoration: none;
+      display: inline-block;
+      box-shadow: var(--shadow);
     }
 
     .edit-btn:hover {
       background: linear-gradient(135deg, var(--accent-hover), var(--accent));
+      color: white;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 15px rgba(0,0,0,0.15);
     }
 
     .text-muted {
       color: var(--text);
       opacity: 0.7;
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+      .header-content {
+        flex-direction: column;
+        gap: 10px;
+        text-align: center;
+      }
+      
+      .card {
+        padding: 20px;
+      }
+      
+      .profile-avatar {
+        margin-right: 0;
+        margin-bottom: 15px;
+      }
     }
 
   </style>
@@ -126,12 +201,12 @@
   <div class="header-content">
     <h4>👤 Profile - StudApp</h4>
     <div class="d-flex align-items-center gap-3">
-      <a href="/dashboard/{{ user.id }}" class="btn btn-sm btn-outline-primary">🏠 Dashboard</a>
+      <a href="/dashboard" class="btn btn-sm btn-outline-primary">🏠 Dashboard</a>
       <div class="form-check form-switch">
         <input class="form-check-input" type="checkbox" id="themeSwitch">
         <label class="form-check-label" for="themeSwitch">🌙</label>
       </div>
-      <a href="/" class="btn btn-sm btn-outline-danger">🚪 Logout</a>
+      <a href="/logout" class="btn btn-sm btn-outline-danger">🚪 Logout</a>
     </div>
   </div>
 </header>
@@ -141,11 +216,10 @@
     <div class="profile-avatar">
       {{ user.name[0]|upper }}
     </div>
-    <div>
+    <div class="text-center text-md-start">
       <h5 class="mb-1">{{ user.name }}</h5>
       <p style="opacity: 0.85; color: var(--text);">📧 {{ user.email }}</p>
-      <p style="opacity: 0.85; color: var(--text);">🆔 Student ID: {{ user.id }}</p>
-
+      <p style="opacity: 0.85; color: var(--text);">🆔 ID: {{ user.id }}</p>
     </div>
   </div>
 
@@ -163,10 +237,6 @@
             <td>{{ user.email }}</td>
           </tr>
           <tr>
-            <th>Phone</th>
-            <td>{{ user.phone }}</td>
-          </tr>
-          <tr>
             <th>Date Joined</th>
             <td>{{ user.date_joined }}</td>
           </tr>
@@ -176,13 +246,13 @@
   </div>
 
   <div class="text-end mt-3">
-    <a href="/edit_profile/{{ user.id }}" class="edit-btn">✏️ Edit Profile</a>
+    <a href="/edit_profile" class="edit-btn">✏️ Edit Profile</a>
   </div>
 </div>
 
 <footer>
   © 2025 StudApp. All rights reserved.
-  <img src="/static/dnlogo.png" style="height:30px" alt="StudApp Logo" data-aos="zoom-in">
+  <img src="/static/dnlogo.png" style="height:30px" alt="StudApp Logo">
 </footer>
 
 <script>
