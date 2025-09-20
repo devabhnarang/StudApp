@@ -149,7 +149,7 @@
         return;
       }
 
-      fetch('http://127.0.0.1:5000/login', {
+      fetch('https://studapp-jm27.onrender.com/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: `email=${encodeURIComponent(email)}&password=${encodeURIComponent(password)}`
@@ -164,9 +164,9 @@
           localStorage.setItem("username", name);
           
           if (role.toLowerCase() === "admin") {
-            window.location.href = `http://127.0.0.1:5000/admin_dashboard/${id}`;
+            window.location.href = `https://studapp-jm27.onrender.com/admin_dashboard/${id}`;
           } else {
-            window.location.href = `http://127.0.0.1:5000/student_dashboard/${id}`;
+            window.location.href = `https://studapp-jm27.onrender.com/student_dashboard/${id}`;
           }
         } else {
           errorElement.textContent = result;
@@ -189,7 +189,7 @@
         return;
       }
 
-      fetch('http://127.0.0.1:5000/signup', {
+      fetch('https://studapp-jm27.onrender.com/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: `name=${encodeURIComponent(name)}&email=${encodeURIComponent(email)}&password=${encodeURIComponent(password)}`
