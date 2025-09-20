@@ -891,10 +891,100 @@ themeSwitch.addEventListener('change', () => {
     document.documentElement.setAttribute('data-theme', theme);
     localStorage.setItem('theme', theme);
 });
+// Chat functionality
+function toggleChat(forceOpen = false) {
+    const popup = document.getElementById('chatPopup');
+    const chatBox = document.getElementById('chatBox');
 
-// Chat functions (keep your existing code)
-function toggleChat(forceOpen=false){ /*...*/ }
-function sendMessage(){ /*...*/ }
+    if (forceOpen) {
+        popup.style.display = 'flex';
+        popup.style.flexDirection = 'column';
+    } else {
+        popup.style.display = popup.style.display === 'flex' ? 'none' : 'flex';
+        popup.style.flexDirection = 'column';
+    }
+
+    if (!chatBox.dataset.started) {
+        chatBox.innerHTML += `<div class="chat-message bot-message">
+            <b>StudBot:</b> Hello ${document.querySelector('.welcome-title').textContent.split(' ')[2]}! I'm your study assistant 🤖. How can I help you today?
+        </div>`;
+        chatBox.dataset.started = "true";
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
+}
+
+function escapeHTML(str) {
+    return str.replace(/[&<>"']/g, (match) => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+    })[match]);
+}
+
+function sendMessage() {
+    const input = document.getElementById('chatInput');
+    const chatBox = document.getElementById('chatBox');
+    const message = input.value.trim();
+    if (!message) return;
+
+    chatBox.innerHTML += `<div class="chat-message user-message">
+        <b>You:</b> ${escapeHTML(message)}
+    </div>`;
+    input.value = '';
+    chatBox.scrollTop = chatBox.scrollHeight;
+
+    fetch('/chatbot', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message })
+    })
+    .then(res => res.json())
+    .then(data => {
+        chatBox.innerHTML += `<div class="chat-message bot-message">
+            <b>StudBot:</b> ${escapeHTML(data.response)}
+        </div>`;
+        chatBox.scrollTop = chatBox.scrollHeight;
+    })
+    .catch(() => {
+        chatBox.innerHTML += `<div class="chat-message bot-message">
+            <b>StudBot:</b> Sorry, I'm having trouble connecting right now.
+        </div>`;
+        chatBox.scrollTop = chatBox.scrollHeight;
+    });
+}
+
+// Enter key triggers send
+document.getElementById('chatInput').addEventListener('keypress', function (e) {
+    if (e.key === 'Enter') sendMessage();
+});
+
+// Draggable chat
+let isDragging = false, offsetX, offsetY;
+const popup = document.getElementById('chatPopup');
+const header = document.getElementById('chatHeader');
+
+header.addEventListener('mousedown', (e) => {
+    isDragging = true;
+    offsetX = e.clientX - popup.getBoundingClientRect().left;
+    offsetY = e.clientY - popup.getBoundingClientRect().top;
+    document.addEventListener('mousemove', moveChat);
+    document.addEventListener('mouseup', () => {
+        isDragging = false;
+        document.removeEventListener('mousemove', moveChat);
+        toggleChat(true); // keep chat open after dragging
+    });
+});
+
+function moveChat(e) {
+    if (!isDragging) return;
+    popup.style.left = (e.clientX - offsetX) + 'px';
+    popup.style.top = (e.clientY - offsetY) + 'px';
+    popup.style.right = 'auto';
+    popup.style.bottom = 'auto';
+}
+
 </script>
 
 </body>
