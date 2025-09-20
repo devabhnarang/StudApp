@@ -1,6 +1,8 @@
 import os
 import tempfile
-from flask import Flask, request, render_template, redirect, jsonify
+import secrets
+from functools import wraps
+from flask import Flask, request, render_template, redirect, jsonify, session, url_for
 from flask_cors import CORS
 from werkzeug.security import generate_password_hash, check_password_hash
 from PyPDF2 import PdfReader
@@ -16,24 +18,44 @@ load_dotenv()
 app = Flask(__name__)
 CORS(app)
 
+# Secret key for session management
+app.secret_key = os.getenv("SECRET_KEY") or secrets.token_hex(32)
+
 # ---------- PostgreSQL Connection Helper ----------
 def get_db_connection():
-    conn = psycopg2.connect(
+    return psycopg2.connect(
         host=os.getenv('DB_HOST'),
         database=os.getenv('DB_NAME'),
         user=os.getenv('DB_USER'),
         password=os.getenv('DB_PASS'),
-        cursor_factory=RealDictCursor  # returns rows as dictionaries
+        cursor_factory=RealDictCursor
     )
-    return conn
 
 # ---------- Groq API config ----------
 openai.api_key = os.getenv("GROQ_API_KEY")
 openai.base_url = 'https://api.groq.com/openai/v1/'
 GROQ_MODEL = 'llama-3.3-70b-versatile'
 
-# ---------- ROUTES ---------- #
 
+# ---------- Helpers ----------
+def login_required(f):
+    @wraps(f)
+    def wrapper(*args, **kwargs):
+        if not session.get("user_id"):
+            return redirect("/index.html")
+        return f(*args, **kwargs)
+    return wrapper
+
+def admin_required(f):
+    @wraps(f)
+    def wrapper(*args, **kwargs):
+        if session.get("role") != "admin":
+            return "Forbidden", 403
+        return f(*args, **kwargs)
+    return wrapper
+
+
+# ---------- ROUTES ----------
 @app.route('/')
 def home_page():
     return render_template('home.html')
@@ -41,6 +63,7 @@ def home_page():
 @app.route('/index.html')
 def index():
     return render_template('index.html')
+
 
 @app.route('/signup', methods=['POST'])
 def signup():
@@ -69,6 +92,7 @@ def signup():
         cur.close()
         conn.close()
 
+
 @app.route('/login', methods=['POST'])
 def login():
     email = request.form['email']
@@ -80,7 +104,10 @@ def login():
         cur.execute("SELECT id, name, role, password FROM users WHERE email = %s", (email,))
         user = cur.fetchone()
         if user and check_password_hash(user['password'], password):
-            return f"{user['role']}|{user['id']}|{user['name']}"
+            session['user_id'] = user['id']
+            session['role'] = user['role']
+            session['name'] = user['name']
+            return "ok"
         return 'Invalid credentials'
     except Exception as e:
         print("❌ Login Error:", e)
@@ -89,26 +116,27 @@ def login():
         cur.close()
         conn.close()
 
-@app.route('/dashboard/<int:user_id>')
-def dashboard_redirect(user_id):
-    conn = get_db_connection()
-    cur = conn.cursor()
-    try:
-        cur.execute("SELECT role FROM users WHERE id = %s", (user_id,))
-        result = cur.fetchone()
-        if not result:
-            return "User not found", 404
-        role = result['role']
-        return redirect(f'/{role}_dashboard/{user_id}')
-    except Exception as e:
-        print("❌ Dashboard Redirect Error:", e)
-        return "Failed to redirect"
-    finally:
-        cur.close()
-        conn.close()
+
+@app.route('/logout')
+def logout():
+    session.clear()
+    return redirect('/index.html')
+
+
+@app.route('/dashboard')
+@login_required
+def dashboard_redirect():
+    user_id = session['user_id']
+    role = session['role']
+    return redirect(f'/{role}_dashboard/{user_id}')
+
 
 @app.route('/student_dashboard/<int:user_id>')
+@login_required
 def student_dashboard(user_id):
+    if session['role'] != 'admin' and session['user_id'] != user_id:
+        return "Forbidden", 403
+
     conn = get_db_connection()
     cur = conn.cursor()
     try:
@@ -117,7 +145,10 @@ def student_dashboard(user_id):
             (user_id,)
         )
         reminders = cur.fetchall()
-        return render_template('student_dashboard.html', user_id=user_id, reminders=reminders)
+        return render_template('student_dashboard.html',
+                               user_id=user_id,
+                               reminders=reminders,
+                               username=session['name'])
     except Exception as e:
         print("❌ Student Dashboard Error:", e)
         return 'Error loading dashboard'
@@ -125,8 +156,14 @@ def student_dashboard(user_id):
         cur.close()
         conn.close()
 
+
 @app.route('/admin_dashboard/<int:user_id>')
+@login_required
+@admin_required
 def admin_dashboard(user_id):
+    if session['user_id'] != user_id:
+        return "Forbidden", 403
+
     conn = get_db_connection()
     cur = conn.cursor()
     try:
@@ -150,7 +187,8 @@ def admin_dashboard(user_id):
             user_id=user_id,
             users=users,
             reminder_count=reminder_count,
-            reminders=reminders
+            reminders=reminders,
+            username=session['name']
         )
     except Exception as e:
         print("❌ Admin Dashboard Error:", e)
@@ -159,14 +197,16 @@ def admin_dashboard(user_id):
         cur.close()
         conn.close()
 
+
 @app.route('/add_reminder', methods=['POST'])
+@login_required
 def add_reminder():
     try:
-        user_id = request.form.get('user_id')
         title = request.form.get('title')
         description = request.form.get('description')
         date = request.form.get('date')
         time = request.form.get('time')
+        user_id = session['user_id']
 
         conn = get_db_connection()
         cur = conn.cursor()
@@ -183,11 +223,20 @@ def add_reminder():
         cur.close()
         conn.close()
 
+
 @app.route('/delete_reminder/<int:reminder_id>', methods=['POST'])
+@login_required
 def delete_reminder(reminder_id):
     conn = get_db_connection()
     cur = conn.cursor()
     try:
+        cur.execute("SELECT user_id FROM reminders WHERE id = %s", (reminder_id,))
+        row = cur.fetchone()
+        if not row:
+            return "Not found", 404
+        if session['role'] != 'admin' and session['user_id'] != row['user_id']:
+            return "Forbidden", 403
+
         cur.execute("DELETE FROM reminders WHERE id = %s", (reminder_id,))
         conn.commit()
         return 'Reminder deleted successfully'
@@ -198,8 +247,13 @@ def delete_reminder(reminder_id):
         cur.close()
         conn.close()
 
+
 @app.route('/profile/<int:user_id>')
+@login_required
 def profile(user_id):
+    if session['role'] != 'admin' and session['user_id'] != user_id:
+        return "Forbidden", 403
+
     conn = get_db_connection()
     cur = conn.cursor()
     try:
@@ -221,7 +275,9 @@ def profile(user_id):
         cur.close()
         conn.close()
 
+
 @app.route('/chatbot', methods=['POST'])
+@login_required
 def chatbot():
     user_msg = request.json.get('message')
     try:
@@ -238,9 +294,14 @@ def chatbot():
         print("❌ Groq API error:", e)
         return {'response': '❌ Failed to contact StudBot'}, 500
 
+
 @app.route('/notes_summarizer/<int:user_id>')
+@login_required
 def notes_summarizer(user_id):
+    if session['role'] != 'admin' and session['user_id'] != user_id:
+        return "Forbidden", 403
     return render_template("notes_summarizer.html", user_id=user_id)
+
 
 def extract_text_by_page_pdf(pdf_file):
     reader = PdfReader(pdf_file)
@@ -264,7 +325,9 @@ def summarize_with_groq(text):
     except Exception as e:
         return f"❌ Summary error: {str(e)}"
 
+
 @app.route('/summarize_notes_all_pages', methods=['POST'])
+@login_required
 def summarize_notes_all_pages():
     if 'file' not in request.files:
         return jsonify({'pages': ['❌ No file provided']})
@@ -287,8 +350,13 @@ def summarize_notes_all_pages():
         if 'temp' in locals() and os.path.exists(temp.name):
             os.remove(temp.name)
 
+
 @app.route('/edit_profile/<int:user_id>', methods=['GET', 'POST'])
+@login_required
 def edit_profile(user_id):
+    if session['role'] != 'admin' and session['user_id'] != user_id:
+        return "Forbidden", 403
+
     conn = get_db_connection()
     cur = conn.cursor()
     try:

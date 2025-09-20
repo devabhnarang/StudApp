@@ -271,6 +271,27 @@
       gap: 10px;
       box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     }
+    
+    #chatCloseBtn {
+      margin-left: auto;
+      background: none;
+      border: none;
+      color: white;
+      font-size: 1.2rem;
+      cursor: pointer;
+      padding: 0;
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 4px;
+      transition: all 0.2s ease;
+    }
+    
+    #chatCloseBtn:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
 
     #chatBox {
       background-color: var(--chat-bg);
@@ -673,7 +694,10 @@
 
 <!-- Chat Popup -->
 <div id="chatPopup">
-  <div id="chatHeader"><i class="fas fa-robot"></i> StudBot Assistant</div>
+  <div id="chatHeader">
+    <span><i class="fas fa-robot"></i> StudBot Assistant</span>
+    <button id="chatCloseBtn" onclick="toggleChat()">✕</button>
+  </div>
   <div id="chatBox"></div>
   <div id="chatInputGroup">
     <input type="text" id="chatInput" placeholder="Type a message..." />
@@ -715,6 +739,11 @@
       }
     });
     calendar.render();
+    
+    // Auto-open chat on page load
+    setTimeout(function() {
+      toggleChat(true);
+    }, 1500);
   });
 
   function submitReminder(e) {

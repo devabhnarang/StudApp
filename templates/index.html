@@ -6,219 +6,254 @@
   <title>StudApp - Login</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
+    :root {
+      --primary: #667eea;
+      --secondary: #764ba2;
+      --text-light: #ffffff;
+      --text-dark: #111827;
+      --card-bg: rgba(255, 255, 255, 0.95);
+      --card-bg-dark: rgba(22, 22, 28, 0.96);
+      --muted: #6b7280;
+      --error: #ef4444;
     }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: 'Poppins', sans-serif;
-      background: linear-gradient(135deg, #667eea, #764ba2);
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
       min-height: 100vh;
       display: flex;
       justify-content: center;
       align-items: center;
+      transition: background 0.4s;
+    }
+    .theme-toggle {
+      position: absolute;
+      top: 18px;
+      right: 18px;
+      background: rgba(255,255,255,0.12);
+      border-radius: 10px;
+      padding: 8px;
+      cursor: pointer;
+      color: white;
+      backdrop-filter: blur(6px);
     }
     .container {
-      background: white;
-      padding: 30px;
-      border-radius: 15px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-      max-width: 400px;
       width: 100%;
-      animation: fadeIn 0.5s ease;
+      max-width: 420px;
+      background: var(--card-bg);
+      border-radius: 14px;
+      padding: 28px;
+      box-shadow: 0 12px 30px rgba(0,0,0,0.18);
+      animation: pop .35s ease;
     }
-    @keyframes fadeIn {
-      from { opacity: 0; transform: scale(0.95); }
-      to { opacity: 1; transform: scale(1); }
+    body.dark .container {
+      background: var(--card-bg-dark);
+      color: var(--text-light);
     }
-    h2 {
-      text-align: center;
-      margin-bottom: 20px;
-      color: #333;
+    @keyframes pop { from{opacity:0; transform:scale(.98)} to{opacity:1; transform:scale(1)} }
+
+    .logo { display:block; margin:0 auto 12px; height:48px; }
+    h2 { text-align:center; margin-bottom:16px; color:var(--text-dark); }
+    body.dark h2 { color: var(--text-light); }
+
+    .input-group { margin-bottom:12px; }
+    label { display:block; margin-bottom:6px; color:var(--muted); font-size:14px; }
+    body.dark label { color:#bfc8ff; opacity:.9; }
+
+    input[type="text"], input[type="email"], input[type="password"] {
+      width:100%; padding:12px 14px; border-radius:10px; border:1px solid #e6e9f2;
+      background: #fff; color: var(--text-dark); transition: box-shadow .15s, border-color .15s;
     }
-    .input-group {
-      margin-bottom: 15px;
+    body.dark input { background: #14141a; border:1px solid #303045; color:var(--text-light); }
+
+    input:focus { outline:none; box-shadow: 0 6px 20px rgba(103, 89, 255, 0.12); border-color:var(--secondary); }
+
+    button.primary {
+      width:100%; padding:12px; border-radius:10px; border:0; color:white;
+      background: linear-gradient(135deg,var(--primary),var(--secondary));
+      font-weight:600; cursor:pointer; transition: transform .12s, box-shadow .12s;
     }
-    .input-group label {
-      display: block;
-      margin-bottom: 5px;
-      color: #555;
-    }
-    input[type="text"], input[type="email"], input[type="password"], select {
-      width: 100%;
-      padding: 12px 15px;
-      border: 1px solid #ccc;
-      border-radius: 10px;
-      background: #f9f9f9;
-      transition: border-color 0.3s;
-      font-family: 'Poppins', sans-serif;
-    }
-    input:focus, select:focus {
-      border-color: #764ba2;
-      outline: none;
-    }
-    button {
-      width: 100%;
-      padding: 12px;
-      background: linear-gradient(135deg, #667eea, #764ba2);
-      color: white;
-      font-weight: 600;
-      border: none;
-      border-radius: 10px;
-      cursor: pointer;
-      margin-top: 10px;
-      transition: background 0.3s;
-      font-family: 'Poppins', sans-serif;
-    }
-    button:hover {
-      background: linear-gradient(135deg, #5a67d8, #6b46c1);
-    }
-    .toggle-link {
-      display: block;
-      text-align: center;
-      margin-top: 15px;
-      color: #667eea;
-      text-decoration: none;
-      cursor: pointer;
-    }
-    .toggle-link:hover {
-      text-decoration: underline;
-    }
-    .error-message {
-      color: #e74c3c;
-      text-align: center;
-      margin-top: 10px;
-      font-size: 14px;
+    button.primary:active { transform: translateY(1px); }
+    button.primary[disabled] { opacity:.7; cursor:progress; }
+
+    .toggle-link { text-align:center; margin-top:12px; color:var(--primary); cursor:pointer; }
+    body.dark .toggle-link { color:#c9bdff; }
+    .toggle-link:hover { text-decoration:underline; }
+
+    .error { color: var(--error); text-align:center; margin-top:8px; font-size:14px; min-height:18px; }
+    .small-muted { color:var(--muted); font-size:13px; text-align:center; margin-top:6px; }
+
+    .secondary-btn {
+      width:100%; margin-top:10px; padding:10px; border-radius:10px; border:1px solid rgba(0,0,0,0.06);
+      background:transparent; cursor:pointer;
     }
   </style>
 </head>
 <body>
-  
-  <div class="container" id="loginForm">
-    <img src="/static/dnlogo.png" style="height:50px" alt="StudApp Logo" data-aos="zoom-in">
-    <h2>StudApp Login</h2> 
+
+  <div class="theme-toggle" id="themeToggle" title="Toggle theme">🌙</div>
+
+  <!-- LOGIN FORM -->
+  <div class="container" id="loginForm" aria-live="polite">
+    <img src="/static/dnlogo.png" alt="StudApp" class="logo">
+    <h2>Welcome back</h2>
+
     <div class="input-group">
       <label for="login-email">Email</label>
-      <input type="email" id="login-email" required>
+      <input id="login-email" type="email" autocomplete="email" />
     </div>
+
     <div class="input-group">
       <label for="login-password">Password</label>
-      <input type="password" id="login-password" required>
+      <input id="login-password" type="password" autocomplete="current-password" />
     </div>
-    <div id="login-error" class="error-message"></div>
-    <button onclick="login()">Login</button>
-    <div class="toggle-link" onclick="toggleForm('signup')">Don't have an account? Sign Up</div>
+
+    <div class="error" id="login-error"></div>
+
+    <button class="primary" id="loginBtn" onclick="handleLogin()">Login</button>
+
+    <div class="small-muted">New here? <span class="toggle-link" onclick="toggleForm('signup')">Create an account</span></div>
   </div>
 
-  <div class="container" id="signupForm" style="display: none;">
-    <img src="/static/dnlogo.png" style="height:50px" alt="StudApp Logo" data-aos="zoom-in">
-    <h2>StudApp Signup</h2>
+  <!-- SIGNUP FORM -->
+  <div class="container" id="signupForm" style="display:none;">
+    <img src="/static/dnlogo.png" alt="StudApp" class="logo">
+    <h2>Create account</h2>
+
     <div class="input-group">
-        <label for="signup-name">Name</label>
-        <input type="text" id="signup-name" required>
+      <label for="signup-name">Full name</label>
+      <input id="signup-name" type="text" autocomplete="name" />
     </div>
+
     <div class="input-group">
-        <label for="signup-email">Email</label>
-        <input type="email" id="signup-email" required>
+      <label for="signup-email">Email</label>
+      <input id="signup-email" type="email" autocomplete="email" />
     </div>
+
     <div class="input-group">
-        <label for="signup-password">Password</label>
-        <input type="password" id="signup-password" required>
+      <label for="signup-password">Password</label>
+      <input id="signup-password" type="password" autocomplete="new-password" />
     </div>
-    <div id="signup-error" class="error-message"></div>
-    <button onclick="signup()">Sign Up</button>
-    <div class="toggle-link" onclick="toggleForm('login')">Already have an account? Login</div>
+
+    <div class="error" id="signup-error"></div>
+
+    <button class="primary" id="signupBtn" onclick="handleSignup()">Sign up</button>
+    <div class="small-muted">Already registered? <span class="toggle-link" onclick="toggleForm('login')">Sign in</span></div>
   </div>
 
-  <script>
-    function toggleForm(formType) {
-      document.getElementById('loginForm').style.display = formType === 'login' ? 'block' : 'none';
-      document.getElementById('signupForm').style.display = formType === 'signup' ? 'block' : 'none';
-      document.getElementById('login-error').textContent = '';
-      document.getElementById('signup-error').textContent = '';
-    }
+<script>
+  // Dark mode toggle (stores preference)
+  const themeToggle = document.getElementById('themeToggle');
+  const saved = localStorage.getItem('studapp-theme') || 'light';
+  if (saved === 'dark') document.body.classList.add('dark'), themeToggle.textContent = '☀️';
+  themeToggle.onclick = () => {
+    document.body.classList.toggle('dark');
+    const nowDark = document.body.classList.contains('dark');
+    themeToggle.textContent = nowDark ? '☀️' : '🌙';
+    localStorage.setItem('studapp-theme', nowDark ? 'dark' : 'light');
+  };
 
-    function login() {
-      const email = document.getElementById('login-email').value;
-      const password = document.getElementById('login-password').value;
-      const errorElement = document.getElementById('login-error');
+  function toggleForm(which) {
+    document.getElementById('loginForm').style.display = which === 'login' ? 'block' : 'none';
+    document.getElementById('signupForm').style.display = which === 'signup' ? 'block' : 'none';
+    clearErrors();
+  }
+  function clearErrors(){
+    document.getElementById('login-error').textContent = '';
+    document.getElementById('signup-error').textContent = '';
+  }
 
-      if (!email || !password) {
-        errorElement.textContent = 'Please fill in all fields';
+  // Robust login handler:
+  async function handleLogin(){
+    clearErrors();
+    const btn = document.getElementById('loginBtn');
+    const email = document.getElementById('login-email').value.trim();
+    const password = document.getElementById('login-password').value;
+    const err = document.getElementById('login-error');
+
+    if(!email || !password){ err.textContent = 'Please fill in all fields'; return; }
+
+    btn.disabled = true;
+    try {
+      const payload = `email=${encodeURIComponent(email)}&password=${encodeURIComponent(password)}`;
+      const res = await fetch('/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: payload
+      });
+      const text = (await res.text()).trim();
+
+      // If server uses session-based login and returns "ok"
+      if (text === 'ok') {
+        // session created server-side: redirect to dashboard endpoint
+        window.location.href = '/dashboard';
         return;
       }
 
-      fetch('https://studapp-jm27.onrender.com/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: `email=${encodeURIComponent(email)}&password=${encodeURIComponent(password)}`
-      })
-      .then(response => {
-        if (!response.ok) throw new Error('Network response was not ok');
-        return response.text();
-      })
-      .then(result => {
-        if (result.includes('|')) {
-          const [role, id, name] = result.split('|');
-          localStorage.setItem("username", name);
-          
-          if (role.toLowerCase() === "admin") {
-            window.location.href = `https://studapp-jm27.onrender.com/admin_dashboard/${id}`;
-          } else {
-            window.location.href = `https://studapp-jm27.onrender.com/student_dashboard/${id}`;
-          }
+      // Backwards-compatible: older server returns "role|id|name"
+      if (text.includes('|')) {
+        const [role, id, name] = text.split('|');
+        // store only for UI (not security)
+        try { localStorage.setItem('username', name); } catch(e){}
+        if (role && role.toLowerCase() === 'admin') {
+          window.location.href = `/admin_dashboard/${id}`;
         } else {
-          errorElement.textContent = result;
+          window.location.href = `/student_dashboard/${id}`;
         }
-      })
-      .catch(error => {
-        errorElement.textContent = 'Login failed. Please try again.';
-        console.error('Error:', error);
-      });
-    }
-
-    function signup() {
-      const name = document.getElementById('signup-name').value;
-      const email = document.getElementById('signup-email').value;
-      const password = document.getElementById('signup-password').value;
-      const errorElement = document.getElementById('signup-error');
-
-      if (!name || !email || !password) {
-        errorElement.textContent = 'Please fill in all fields';
         return;
       }
 
-      fetch('https://studapp-jm27.onrender.com/signup', {
+      // Other responses are treated as error messages
+      err.textContent = text || 'Login failed. Please try again.';
+    } catch(e){
+      console.error(e);
+      err.textContent = 'Network error. Please try again.';
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  // Signup handler
+  async function handleSignup(){
+    clearErrors();
+    const btn = document.getElementById('signupBtn');
+    const name = document.getElementById('signup-name').value.trim();
+    const email = document.getElementById('signup-email').value.trim();
+    const password = document.getElementById('signup-password').value;
+    const err = document.getElementById('signup-error');
+
+    if(!name || !email || !password){ err.textContent = 'Please fill in all fields'; return; }
+
+    btn.disabled = true;
+    try {
+      const payload = `name=${encodeURIComponent(name)}&email=${encodeURIComponent(email)}&password=${encodeURIComponent(password)}`;
+      const res = await fetch('/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: `name=${encodeURIComponent(name)}&email=${encodeURIComponent(email)}&password=${encodeURIComponent(password)}`
-      })
-      .then(response => {
-        if (!response.ok) throw new Error('Network response was not ok');
-        return response.text();
-      })
-      .then(result => {
-        if (result.includes('successful')) {
-          toggleForm('login');
-          document.getElementById('login-email').value = email;
-        } else {
-          errorElement.textContent = result;
-        }
-      })
-      .catch(error => {
-        errorElement.textContent = 'Signup failed. Please try again.';
-        console.error('Error:', error);
+        body: payload
       });
-    }
-
-    
-    window.addEventListener('DOMContentLoaded', () => {
-      const params = new URLSearchParams(window.location.search);
-      if (params.get('form') === 'signup') {
-        toggleForm('signup');
+      const text = (await res.text()).trim();
+      if (text.toLowerCase().includes('successful')) {
+        toggleForm('login');
+        // prefill email in login for convenience
+        document.getElementById('login-email').value = email;
+        document.getElementById('login-password').focus();
+        return;
       }
-    });
-  </script>
+      err.textContent = text || 'Signup failed. Please try again.';
+    } catch(e){
+      console.error(e);
+      err.textContent = 'Network error. Please try again.';
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  // If URL asks to open signup form (?form=signup)
+  window.addEventListener('DOMContentLoaded', () => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('form') === 'signup') toggleForm('signup');
+  });
+</script>
 </body>
 </html>
