@@ -329,7 +329,7 @@ def chatbot():
 def notes_summarizer():
     if session['role'] == 'admin':
         return "Admins cannot summarize notes", 403
-    return render_template("notes_summarizer.html", user_id=session['user_id'])
+    return render_template("notes_summarizer.html")
 
 def extract_text_by_page_pdf(pdf_file):
     reader = PdfReader(pdf_file)
