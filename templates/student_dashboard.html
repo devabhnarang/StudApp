@@ -12,38 +12,61 @@
 
   <style>
     :root {
-      --bg: #f8fafc;
-      --text: #1e293b;
+      --bg: linear-gradient(to right, #eef2f3, #ffffff);
+      --text: #333;
+      --nav-bg: #ffffff;
+      --nav-text: #333;
+      --nav-hover: #4e73df;
+      --hero-bg: linear-gradient(to right, #4e73df, #667eea);
+      --hero-text: #fff;
+      --btn-bg: #fff;
+      --btn-text: #4e73df;
+      --btn-hover-bg: #f8f9fc;
+      --btn-hover-text: #2e59d9;
       --card-bg: #ffffff;
-      --accent: #4f46e5;
-      --accent2: #6366f1;
-      --accent3: #8b5cf6;
-      --btn-hover: #4338ca;
-      --chat-bg: #eef2ff;
+      --card-text: #333;
+      --footer-bg: linear-gradient(to right, #2c3e50, #34495e);
+      --footer-text: #ccc;
+      --footer-heading: #fff;
+      --login-border: #4e73df;
+      --signup-bg: #4e73df;
+      --signup-hover: #2e59d9;
+      --feature-icon-bg: #e9ecef;
+      --feature-icon-color: #4e73df;
       --border: #e2e8f0;
-      --success: #10b981;
       --muted: #64748b;
-      --header-gradient: linear-gradient(135deg, var(--accent), var(--accent2), var(--accent3));
-      --footer-gradient: linear-gradient(135deg, var(--accent2), var(--accent));
+      --success: #10b981;
     }
+
     [data-theme="dark"] {
-      --bg: #0f172a;
-      --text: #f1f5f9;
-      --card-bg: #1e293b;
-      --accent: #818cf8;
-      --accent2: #6366f1;
-      --accent3: #a78bfa;
-      --btn-hover: #a5b4fc;
-      --chat-bg: #1e293b;
+      --bg: #1e1e1e;
+      --text: #eaeaea;
+      --nav-bg: #121212;
+      --nav-text: #eaeaea;
+      --nav-hover: #8ab4f8;
+      --hero-bg: linear-gradient(to right, #2a2a72, #009ffd);
+      --hero-text: #ffffff;
+      --btn-bg: #333;
+      --btn-text: #ffffff;
+      --btn-hover-bg: #444;
+      --btn-hover-text: #9ecbff;
+      --card-bg: #2a2a2a;
+      --card-text: #eaeaea;
+      --footer-bg: linear-gradient(to right, #000000, #1c1c1c);
+      --footer-text: #aaa;
+      --footer-heading: #ffffff;
+      --login-border: #9ecbff;
+      --signup-bg: #009ffd;
+      --signup-hover: #0066cc;
+      --feature-icon-bg: #3a3a3a;
+      --feature-icon-color: #8ab4f8;
       --border: #334155;
-      --success: #34d399;
       --muted: #94a3b8;
-      --header-gradient: linear-gradient(135deg, #4338ca, var(--accent), #6366f1);
-      --footer-gradient: linear-gradient(135deg, #4338ca, var(--accent));
+      --success: #34d399;
     }
   
     body {
-      background-color: var(--bg);
+      background: var(--bg);
       color: var(--text);
       font-family: 'Inter', sans-serif;
       margin: 0;
@@ -53,7 +76,7 @@
     }
 
     header, footer {
-      background: var(--header-gradient);
+      background: var(--nav-bg);
       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
       padding: 1rem 2rem;
       position: fixed;
@@ -64,17 +87,17 @@
     
     header { 
       top: 0; 
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      border-bottom: 1px solid var(--border);
     }
     
     footer { 
       bottom: 0; 
       text-align: center; 
       font-size: 0.9rem; 
-      color: white;
+      color: var(--footer-text);
       padding: 0.75rem 2rem;
-      background: var(--footer-gradient);
-      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      background: var(--footer-bg);
+      border-top: 1px solid var(--border);
     }
 
     .header-content {
@@ -84,11 +107,9 @@
     }
     
     .header-content h4 {
-      color: white;
+      color: var(--nav-hover);
       margin: 0;
       font-weight: 700;
-      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-      animation: pulse 2s infinite;
     }
 
     .container {
@@ -118,7 +139,7 @@
     }
 
     .btn-primary {
-      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      background: linear-gradient(135deg, var(--signup-bg), var(--nav-hover));
       border: none;
       color: white;
       border-radius: 10px;
@@ -169,19 +190,19 @@
       left: 0;
       width: 50px;
       height: 4px;
-      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      background: linear-gradient(135deg, var(--signup-bg), var(--nav-hover));
       border-radius: 4px;
     }
 
     .btn-primary:hover {
-      background: linear-gradient(135deg, var(--btn-hover), var(--accent));
+      background: linear-gradient(135deg, var(--signup-hover), var(--btn-hover-text));
       transform: translateY(-2px);
       box-shadow: 0 6px 12px rgba(79, 70, 229, 0.4);
     }
 
     .btn-outline-primary {
-      color: var(--accent);
-      border-color: var(--accent);
+      color: var(--nav-hover);
+      border-color: var(--nav-hover);
       border-radius: 10px;
       font-weight: 500;
       transition: all 0.3s ease;
@@ -189,7 +210,7 @@
     }
 
     .btn-outline-primary:hover {
-      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      background: linear-gradient(135deg, var(--signup-bg), var(--nav-hover));
       color: white;
       transform: translateY(-2px);
       box-shadow: 0 6px 12px rgba(79, 70, 229, 0.3);
@@ -207,7 +228,7 @@
     .form-control:focus,
     textarea:focus,
     .form-select:focus {
-      border-color: var(--accent);
+      border-color: var(--nav-hover);
       box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.15);
       outline: none;
     }
@@ -221,7 +242,7 @@
       top: 100px;
       right: 30px;
       z-index: 1050;
-      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      background: linear-gradient(135deg, var(--signup-bg), var(--nav-hover));
       color: white;
       font-size: 1rem;
       font-weight: 600;
@@ -261,7 +282,7 @@
     }
 
     #chatHeader {
-      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      background: linear-gradient(135deg, var(--signup-bg), var(--nav-hover));
       color: white;
       padding: 1.2rem;
       cursor: move;
@@ -294,7 +315,7 @@
     }
 
     #chatBox {
-      background-color: var(--chat-bg);
+      background-color: var(--bg);
       padding: 1.2rem;
       height: 300px;
       overflow-y: auto;
@@ -315,7 +336,7 @@
     }
     
     .user-message {
-      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      background: linear-gradient(135deg, var(--signup-bg), var(--nav-hover));
       color: white;
       align-self: flex-end;
       border-bottom-right-radius: 5px;
@@ -351,14 +372,14 @@
     }
     
     #chatInputGroup input:focus {
-      border-color: var(--accent);
+      border-color: var(--nav-hover);
       box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
     }
 
     #chatInputGroup button {
       border: none;
       padding: 0.85rem 1.5rem;
-      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      background: linear-gradient(135deg, var(--signup-bg), var(--nav-hover));
       color: white;
       border-radius: 12px;
       font-weight: 600;
@@ -368,7 +389,7 @@
     }
     
     #chatInputGroup button:hover {
-      background: linear-gradient(135deg, var(--btn-hover), var(--accent));
+      background: linear-gradient(135deg, var(--signup-hover), var(--btn-hover-text));
       transform: translateY(-2px);
       box-shadow: 0 6px 12px rgba(79, 70, 229, 0.4);
     }
@@ -387,8 +408,8 @@
     }
 
     .welcome-box {
-      background: linear-gradient(135deg, var(--accent), var(--accent2), var(--accent3));
-      color: white;
+      background: var(--hero-bg);
+      color: var(--hero-text);
       padding: 3rem 2.5rem;
       animation: slideFadeIn 0.8s ease;
       border-radius: 20px;
@@ -440,7 +461,7 @@
     }
     
     .reminder-item:hover {
-      background-color: var(--chat-bg);
+      background-color: var(--bg);
       padding: 1.2rem;
       border-radius: 12px;
       margin: 0 -1rem;
@@ -495,7 +516,7 @@
     }
     
     .fc .fc-button {
-      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      background: linear-gradient(135deg, var(--signup-bg), var(--nav-hover));
       border: none;
       border-radius: 8px;
       font-weight: 500;
@@ -503,7 +524,7 @@
     }
     
     .fc .fc-button:hover {
-      background: linear-gradient(135deg, var(--btn-hover), var(--accent));
+      background: linear-gradient(135deg, var(--signup-hover), var(--btn-hover-text));
       transform: translateY(-2px);
       box-shadow: 0 6px 12px rgba(79, 70, 229, 0.3);
     }
@@ -514,7 +535,7 @@
     }
     
     .fc .fc-daygrid-day-frame:hover {
-      background-color: var(--chat-bg);
+      background-color: var(--bg);
     }
     
     .fc-theme-standard td, 
@@ -528,7 +549,7 @@
     }
     
     .fc .fc-event {
-      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      background: linear-gradient(135deg, var(--signup-bg), var(--nav-hover));
       border: none;
       border-radius: 6px;
       padding: 3px 6px;
@@ -537,12 +558,12 @@
     }
     
     .form-check-input:checked {
-      background-color: var(--accent);
-      border-color: var(--accent);
+      background-color: var(--nav-hover);
+      border-color: var(--nav-hover);
     }
     
     .form-check-input:focus {
-      border-color: var(--accent);
+      border-color: var(--nav-hover);
       box-shadow: 0 0 0 0.25rem rgba(79, 70, 229, 0.25);
     }
     
@@ -550,7 +571,6 @@
       height: 30px;
       margin-left: 15px;
       vertical-align: middle;
-      filter: brightness(0) invert(1);
       transition: all 0.3s ease;
     }
     
@@ -559,7 +579,7 @@
     }
     
     footer div {
-      color: white;
+      color: var(--footer-heading);
       font-weight: 500;
     }
     
@@ -570,7 +590,7 @@
     }
     
     .form-check-label {
-      color: white;
+      color: var(--nav-text);
       font-weight: 500;
     }
     
@@ -578,6 +598,7 @@
     .header-content .btn {
       box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
       transition: all 0.3s ease;
+      border: 1px solid var(--border);
     }
     
     .header-content .btn:hover {
@@ -614,15 +635,15 @@
 
 <header>
   <div class="header-content">
-    <h4 class="mb-0">📚 StudApp Dashboard</h4>
+    <h4 class="mb-0"><i class="fas fa-graduation-cap me-2"></i>StudApp Dashboard</h4>
     <div class="d-flex align-items-center gap-3">
-      <a href="/profile/{{ user_id }}" class="btn btn-sm btn-outline-light">👤 Profile</a>
-      <a href="/notes_summarizer/{{ user_id }}" class="btn btn-sm btn-outline-light">📝 Notes Summarizer</a>
+      <a href="/profile/{{ user_id }}" class="btn btn-sm btn-outline-primary">👤 Profile</a>
+      <a href="/notes_summarizer/{{ user_id }}" class="btn btn-sm btn-outline-primary">📝 Notes Summarizer</a>
       <div class="form-check form-switch">
         <input class="form-check-input" type="checkbox" id="themeSwitch" />
         <label class="form-check-label" for="themeSwitch">🌙</label>
       </div>
-      <a href="/" class="btn btn-sm btn-outline-light">🚪 Logout</a>
+      <a href="/" class="btn btn-sm btn-outline-primary">🚪 Logout</a>
     </div>
   </div>
 </header>
@@ -729,8 +750,8 @@
           title: "{{ r[1]|e }}", 
           start: "{{ r[3] }}T{{ r[4] }}", 
           description: "{{ r[2]|e }}",
-          backgroundColor: 'var(--accent)',
-          borderColor: 'var(--accent)'
+          backgroundColor: 'var(--nav-hover)',
+          borderColor: 'var(--nav-hover)'
         },
         {% endfor %}
       ],

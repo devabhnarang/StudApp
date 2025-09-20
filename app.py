@@ -54,7 +54,6 @@ def admin_required(f):
     return wrapper
 
 # ---------- Routes ----------
-
 @app.route('/')
 def home_page():
     return render_template('home.html')
@@ -63,6 +62,7 @@ def home_page():
 def index():
     return render_template('index.html')
 
+# ---------- Auth ----------
 @app.route('/signup', methods=['POST'])
 def signup():
     name = request.form['name']
@@ -118,7 +118,7 @@ def logout():
     session.clear()
     return redirect('/index.html')
 
-# ---------- Dashboard Routes ----------
+# ---------- Dashboard ----------
 @app.route('/dashboard')
 @login_required
 def dashboard_redirect():
@@ -132,7 +132,6 @@ def dashboard_redirect():
 def student_dashboard():
     if session['role'] == 'admin':
         return "Admins cannot access student dashboard", 403
-
     user_id = session['user_id']
     conn = get_db_connection()
     cur = conn.cursor()
@@ -193,7 +192,7 @@ def admin_dashboard():
         cur.close()
         conn.close()
 
-# ---------- Reminder Routes ----------
+# ---------- Reminders ----------
 @app.route('/add_reminder', methods=['POST'])
 @login_required
 def add_reminder():
@@ -242,7 +241,7 @@ def delete_reminder(reminder_id):
         cur.close()
         conn.close()
 
-# ---------- Profile Routes ----------
+# ---------- Profile ----------
 @app.route('/profile')
 @login_required
 def profile():
@@ -330,8 +329,7 @@ def chatbot():
 def notes_summarizer():
     if session['role'] == 'admin':
         return "Admins cannot summarize notes", 403
-    user_id = session['user_id']
-    return render_template("notes_summarizer.html", user_id=user_id)
+    return render_template("notes_summarizer.html", user_id=session['user_id'])
 
 def extract_text_by_page_pdf(pdf_file):
     reader = PdfReader(pdf_file)
