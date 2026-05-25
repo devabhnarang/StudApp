@@ -551,6 +551,13 @@
       flex: 1;
     }
 
+    .task-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-shrink: 0;
+    }
+
     .task-title {
       font-weight: 500;
       color: var(--text);
@@ -1419,18 +1426,19 @@
         {% for r in reminders %}
         {
             id: {{ r.id|default(0) }},
-            title: escapeHTML("{{ r.title|e }}"),
-            description: escapeHTML("{{ r.description|e }}"),
-            date: "{{ r.date|default('') }}",
-            time: "{{ r.time|default('') }}",
-            priority: "{{ r.priority|default('medium') }}",
-            completed: {{ r.completed|default(false) }}
+            title: escapeHTML({{ r.title|default('')|tojson }}),
+            description: escapeHTML({{ r.description|default('')|tojson }}),
+            date: {{ r.date|default('')|tojson }},
+            time: {{ r.time|default('')|tojson }},
+            priority: {{ r.priority|default('medium')|tojson }},
+            completed: {{ r.completed|default(false)|tojson }}
         },
         {% endfor %}
     ];
 
     // SAVED PAGES DATA (LOCAL STORAGE BASED)
     let savedPages = JSON.parse(localStorage.getItem('studapp_saved_pages') || '[]');
+    let dashboardCalendar = null;
     
     // DEFAULT SAVED PAGES IF EMPTY
     if (savedPages.length === 0) {
@@ -1551,7 +1559,12 @@
                             <div class="deadline-title">${r.title}</div>
                             <div class="deadline-desc">${r.description}</div>
                         </div>
-                        <div class="deadline-badge ${urgency}" aria-label="${urgency} priority">${urgency}</div>
+                        <div class="task-actions">
+                            <div class="deadline-badge ${urgency}" aria-label="${urgency} priority">${urgency}</div>
+                            <button class="page-action-btn" onclick="deleteReminder(event, ${r.id})" aria-label="Delete reminder">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
                     </div>
                     <div class="deadline-time">
                         <i class="fas fa-clock"></i> ${timeText}
@@ -1594,6 +1607,11 @@
                             <span><i class="fas fa-clock"></i> ${r.time}</span>
                             <span><i class="fas fa-flag" style="color: ${getPriorityColor(r.priority)}"></i> ${r.priority}</span>
                         </div>
+                    </div>
+                    <div class="task-actions">
+                        <button class="page-action-btn" onclick="deleteReminder(event, ${r.id})" aria-label="Delete reminder">
+                            <i class="fas fa-trash"></i>
+                        </button>
                     </div>
                 </div>
             `;
@@ -1644,7 +1662,11 @@
         const calendarEl = document.getElementById('calendar');
         if (!calendarEl) return;
         
-        const calendar = new FullCalendar.Calendar(calendarEl, {
+        if (dashboardCalendar) {
+            dashboardCalendar.destroy();
+        }
+
+        dashboardCalendar = new FullCalendar.Calendar(calendarEl, {
             initialView: 'dayGridMonth',
             height: 450,
             headerToolbar: { 
@@ -1668,7 +1690,7 @@
                 };
             }
         });
-        calendar.render();
+        dashboardCalendar.render();
     }
 
     // HELPER FUNCTIONS
@@ -1681,28 +1703,31 @@
         }
     }
 
+    function setTaskVisualState(taskElement, completed) {
+        const checkbox = taskElement.querySelector('.task-checkbox');
+        const title = taskElement.querySelector('.task-title');
+        checkbox.classList.toggle('completed', completed);
+        title.classList.toggle('completed', completed);
+        taskElement.setAttribute('aria-checked', String(completed));
+    }
+
     function toggleTaskCompletion(event, taskId) {
         event.stopPropagation();
         const task = remindersData.find(r => r.id === taskId);
         if (task) {
+            const previousState = task.completed;
             task.completed = !task.completed;
             
             const taskElement = event.target.closest('.task-item');
-            const checkbox = taskElement.querySelector('.task-checkbox');
-            const title = taskElement.querySelector('.task-title');
-            
-            if (task.completed) {
-                checkbox.classList.add('completed');
-                title.classList.add('completed');
-                taskElement.setAttribute('aria-checked', 'true');
-            } else {
-                checkbox.classList.remove('completed');
-                title.classList.remove('completed');
-                taskElement.setAttribute('aria-checked', 'false');
-            }
+            setTaskVisualState(taskElement, task.completed);
             
             announceToScreenReader(`Task "${task.title}" marked as ${task.completed ? 'completed' : 'incomplete'}`);
-            updateTaskStatus(taskId, task.completed);
+            updateTaskStatus(taskId, task.completed).catch(error => {
+                console.error('Error:', error);
+                task.completed = previousState;
+                setTaskVisualState(taskElement, previousState);
+                alert('Could not update this task. Please try again.');
+            });
         }
     }
 
@@ -1714,8 +1739,41 @@
     }
 
     function updateTaskStatus(taskId, completed) {
-        // Simulate API call
-        console.log(`Updating task ${taskId} to ${completed ? 'completed' : 'incomplete'}`);
+        return fetch(`/toggle_reminder/${taskId}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ completed })
+        }).then(async res => {
+            const data = await res.json();
+            if (!res.ok || data.status !== 'success') {
+                throw new Error(data.message || 'Failed to update task');
+            }
+            return data;
+        });
+    }
+
+    function deleteReminder(event, reminderId) {
+        event.stopPropagation();
+        const task = remindersData.find(r => r.id === reminderId);
+        if (!confirm(`Delete "${task ? task.title : 'this reminder'}"?`)) return;
+
+        fetch(`/delete_reminder/${reminderId}`, { method: 'POST' })
+            .then(async res => {
+                const data = await res.json();
+                if (!res.ok || data.status !== 'success') {
+                    throw new Error(data.message || 'Failed to delete reminder');
+                }
+                const index = remindersData.findIndex(r => r.id === reminderId);
+                if (index >= 0) remindersData.splice(index, 1);
+                populateUpcomingDeadlines();
+                populateTodaysTasks();
+                initCalendar();
+                announceToScreenReader('Reminder deleted');
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert(error.message || 'Failed to delete reminder.');
+            });
     }
 
     function announceToScreenReader(message) {
@@ -1764,7 +1822,8 @@
     }
 
     function viewAllTasks() {
-        alert('This would show all tasks in a separate view. Implement as needed.');
+        document.getElementById('upcomingDeadlines')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        announceToScreenReader('Showing task lists');
     }
 
     // SUBMIT REMINDER
@@ -1792,12 +1851,24 @@
             body: formData.toString()
         })
         .then(res => {
-            if (!res.ok) throw new Error('Network response was not ok');
-            return res.text();
+            return res.json().then(data => {
+                if (!res.ok || data.status !== 'success') {
+                    throw new Error(data.message || 'Failed to add reminder');
+                }
+                return data;
+            });
         })
-        .then(msg => {
+        .then(data => {
+            if (data.reminder) {
+                remindersData.push(data.reminder);
+                populateUpcomingDeadlines();
+                populateTodaysTasks();
+                initCalendar();
+            }
+            document.getElementById("reminderForm").reset();
             announceToScreenReader('Reminder added successfully');
-            setTimeout(() => window.location.reload(), 500);
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
         })
         .catch((error) => {
             console.error('Error:', error);

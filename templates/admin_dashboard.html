@@ -108,12 +108,12 @@
   <div class="header-content">
     <h4>⚙️ StudApp Admin Dashboard</h4>
     <div class="d-flex align-items-center gap-3">
-      <a href="/profile/{{ user_id }}" class="btn btn-sm btn-outline-primary">👤 Profile</a>
+      <a href="/profile" class="btn btn-sm btn-outline-primary">Profile</a>
       <div class="form-check form-switch">
         <input class="form-check-input" type="checkbox" id="themeSwitch" />
         <label class="form-check-label" for="themeSwitch">🌙</label>
       </div>
-      <a href="/" class="btn btn-sm btn-outline-danger">🚪 Logout</a>
+      <a href="/logout" class="btn btn-sm btn-outline-danger">Logout</a>
     </div>
   </div>
 </header>
@@ -275,11 +275,11 @@
   {% for user in users %}
     users['{{ user.id }}'] = {
       id: '{{ user.id }}',
-      name: '{{ user.name }}',
-      email: '{{ user.email }}',
-      role: '{{ user.role }}',
-      status: '{{ user.status }}',
-      date_joined: '{{ user.date_joined }}'
+      name: {{ user.name|tojson }},
+      email: {{ user.email|tojson }},
+      role: {{ user.role|tojson }},
+      status: {{ user.status|tojson }},
+      date_joined: {{ user.date_joined|tojson }}
     };
   {% endfor %}
 
@@ -314,16 +314,34 @@
   });
 
   // ---------- HANDLE ACTIONS ----------
-  function handleActionById(userId, actionType){
+  async function handleActionById(userId, actionType){
     const user = users[userId];
     if(!user) return;
 
     const row = document.querySelector(`button[data-userid="${userId}"]`).closest('tr');
     const statusBadge = row.querySelector('.status-badge');
     const actionButtons = row.querySelector('.action-buttons');
+    const endpoint = actionType === 'revoke' ? `/revoke_user/${userId}` : `/restore_user/${userId}`;
 
-    if(actionType==='revoke'){
-      user.status = 'revoked';
+    if(!confirm(`${actionType === 'revoke' ? 'Revoke' : 'Restore'} access for ${user.name}?`)) return;
+
+    actionButtons.querySelectorAll('button').forEach(button => button.disabled = true);
+
+    try {
+      const res = await fetch(endpoint, { method: 'POST' });
+      const data = await res.json();
+      if(!res.ok || data.status !== 'success') {
+        throw new Error(data.message || 'Action failed');
+      }
+
+      user.status = data.user_status || (actionType === 'revoke' ? 'revoked' : 'active');
+    } catch(error) {
+      alert(error.message || 'Could not update user access.');
+      actionButtons.querySelectorAll('button').forEach(button => button.disabled = false);
+      return;
+    }
+
+    if(user.status==='revoked'){
       statusBadge.textContent = 'Revoked';
       statusBadge.className = 'status-badge status-inactive';
       actionButtons.innerHTML = `
@@ -334,8 +352,7 @@
           <i class="fas fa-user-check"></i>
         </button>
       `;
-    } else if(actionType==='restore'){
-      user.status = 'active';
+    } else {
       statusBadge.textContent = 'Active';
       statusBadge.className = 'status-badge status-active';
       actionButtons.innerHTML = `
@@ -347,6 +364,8 @@
         </button>
       `;
     }
+
+    bootstrap.Modal.getInstance(userDetailsModal)?.hide();
     // Reattach event listeners to newly created buttons
     attachActionListeners();
   }

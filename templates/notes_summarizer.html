@@ -416,7 +416,7 @@
       </div>
       <h5>Drag & Drop your file here</h5>
       <p class="text-muted">or</p>
-      <input type="file" name="file" id="fileInput" accept=".pdf,.doc,.docx" class="d-none">
+      <input type="file" name="file" id="fileInput" accept=".pdf,.docx" class="d-none">
       <button class="btn btn-primary" onclick="document.getElementById('fileInput').click()">
         <i class="fas fa-file"></i> Choose File
       </button>
@@ -444,7 +444,7 @@
         <i class="fas fa-file-pdf"></i>
       </div>
       <h5>Multiple Formats</h5>
-      <p>Supports PDF, DOC, and DOCX files</p>
+      <p>Supports PDF and DOCX files</p>
     </div>
     <div class="feature-card">
       <div class="feature-icon">
@@ -504,6 +504,16 @@
   const summaryResults = document.getElementById('summaryResults');
   const pageNav = document.getElementById('pageNav');
   const progressBar = document.getElementById('progressBar');
+  let lastSummaries = [];
+
+  function escapeHTML(str) {
+    return String(str || '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
 
   // Drag and drop functionality
   ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
@@ -591,7 +601,12 @@
       clearInterval(progressInterval);
       progressBar.style.width = '100%';
       setTimeout(() => { progressBar.style.width = '0%'; }, 500);
-      return res.json();
+      return res.json().then(data => {
+        if (!res.ok) {
+          throw new Error((data.pages && data.pages[0]) || 'Error processing document.');
+        }
+        return data;
+      });
     })
     .then(data => {
       if (data.pages && data.pages.length > 0) {
@@ -615,16 +630,17 @@
         </div>
       `;
       console.error('Error:', error);
-      showNotification('Error processing document.', 'error');
+      showNotification(error.message || 'Error processing document.', 'error');
     });
   }
 
   function displaySummaries(pages) {
+    lastSummaries = pages;
     let output = '';
     let navOutput = '';
     
     pages.forEach((summary, index) => {
-      const cleanSummary = summary.replace(/[*_~`]/g, '');
+      const cleanSummary = escapeHTML(summary.replace(/[*_~`]/g, '')).replace(/\n/g, '<br>');
       output += `
         <div class="summary-content" id="page-${index+1}" ${index > 0 ? 'style="display: none;"' : ''}>
           <div class="summary-title">
@@ -665,18 +681,44 @@
   }
 
   function downloadSummary() {
-    // This would be implemented to download the summary as a text file
-    showNotification('Download feature coming soon!', 'info');
+    if (!lastSummaries.length) {
+      showNotification('No summary available to download.', 'error');
+      return;
+    }
+
+    const content = lastSummaries
+      .map((summary, index) => `Page ${index + 1}\n${summary}`)
+      .join('\n\n---\n\n');
+    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'studapp-summary.txt';
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+    showNotification('Summary downloaded.', 'success');
   }
 
   function copyToClipboard() {
-    // This would copy the summary to clipboard
-    showNotification('Copy to clipboard feature coming soon!', 'info');
+    if (!lastSummaries.length) {
+      showNotification('No summary available to copy.', 'error');
+      return;
+    }
+
+    const content = lastSummaries
+      .map((summary, index) => `Page ${index + 1}\n${summary}`)
+      .join('\n\n---\n\n');
+    navigator.clipboard.writeText(content)
+      .then(() => showNotification('Summary copied to clipboard.', 'success'))
+      .catch(() => showNotification('Could not copy summary.', 'error'));
   }
 
   function resetForm() {
     fileInput.value = '';
     fileName.textContent = '';
+    lastSummaries = [];
     resultsCard.style.display = 'none';
     showNotification('Form reset. You can upload a new file.', 'info');
   }

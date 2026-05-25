@@ -511,8 +511,8 @@
           const [role, id, name] = text.split("|");
           try { localStorage.setItem("username", name); } catch (e) {}
           window.location.href = role && role.toLowerCase() === "admin"
-            ? `/admin_dashboard/${id}`
-            : `/student_dashboard/${id}`;
+            ? "/admin_dashboard"
+            : "/student_dashboard";
           return;
         }
 
